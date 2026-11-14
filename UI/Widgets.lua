@@ -212,8 +212,7 @@ W.CloseMenu = CloseMenu
 
 local function SetIcon(tex, spec, tint)
     if not spec then tex:Hide() return end
-    tex:SetTexture(spec.file)
-    tex:SetTexCoord(spec.coords[1], spec.coords[2], spec.coords[3], spec.coords[4])
+    ns.Media.Apply(tex, spec, false)
     if tint and spec.tintable then
         tex:SetVertexColor(tint.r, tint.g, tint.b)
     else

@@ -14,14 +14,15 @@ local Media = ns.Media
 local Options = {}
 ns.Options = Options
 
-local WIDTH, HEIGHT = 640, 650
-local COL_W = 272
-local LEFT_X, RIGHT_X = 14, 324
+local WIDTH, HEIGHT = 700, 650
+local COL_W = 300
+local LEFT_X, RIGHT_X = 14, 356
 
 local win
 local controls = {}
-local previewClass, previewTarget = "elite", true
+local previewClass, previewTarget, previewPlates = "elite", true, true
 local previewPlate, previewBar, previewSet, previewNotice
+local previewFrame, previewFrameSet
 local classButtons = {}
 
 local function P() return ns.db.profile end
@@ -116,39 +117,78 @@ end
 -- Preview
 -- ---------------------------------------------------------------------------
 
+-- The preview follows the game's rules: the mock nameplate shows while
+-- "Nameplates on" is ticked, the mock target frame while the mob is "your
+-- target", and each gets the badge or marker the game would put there.
 function Options.RefreshPreview()
     if not previewSet then return end
     local p = P()
     local c = p.classes[previewClass]
     previewSet:HideAll()
+    previewFrameSet:HideAll()
+    previewPlate:SetShown(previewPlates)
     previewPlate:SetAlpha(previewTarget and 1 or 0.6)
+    previewFrame:SetShown(previewTarget)
     for cls, btn in pairs(classButtons) do btn:SetSelected(cls == previewClass) end
 
-    if not p.enabled or not c.show then
-        previewNotice:SetText(not p.enabled and L["The addon is turned off (General tab)."]
-            or string.format(L["%s is turned off (Classifications tab)."], ns.CLASS_LABELS[previewClass]))
+    previewNotice:Hide()
+    local function Notice(text)
+        previewNotice:SetText(text)
         previewNotice:Show()
+    end
+    if not p.enabled or not c.show then
+        Notice(not p.enabled and L["The addon is turned off (General tab)."]
+            or string.format(L["%s is turned off (Classifications tab)."], ns.CLASS_LABELS[previewClass]))
         return
     end
-    previewNotice:Hide()
 
+    -- Nameplate: badge and overhead marker.
     local b, o = p.badge, p.overhead
-    if b.enabled and b.where == "frame" then
-        previewNotice:SetText(L["The badge shows on the target frame only."])
-        previewNotice:Show()
-    end
-    local showBadge = ns.BadgeOnNameplates(p) and (b.scope == "all" or previewTarget)
-    local showOver = o.enabled and (o.scope == "all"
+    local showBadge = previewPlates and ns.BadgeOnNameplates(p) and (b.scope == "all" or previewTarget)
+    local showOver = previewPlates and o.enabled and (o.scope == "all"
         or (o.scope == "target" and previewTarget)
         or (o.scope == "nontarget" and not previewTarget))
-    -- The mock plate's frame includes its name, like Blizzard's own plates.
-    local place = previewSet.place
-    place.host = previewPlate
-    place.badge = (p.anchor == "health") and previewBar or previewPlate
-    place.over = previewPlate
-    place.strata, place.level = nil, nil
-    previewSet:Update(previewClass, place, showBadge, showOver, p)
+    if showBadge or showOver then
+        -- The mock plate's frame includes its name, like Blizzard's own plates.
+        local place = previewSet.place
+        place.host = previewPlate
+        place.badge = (p.anchor == "health") and previewBar or previewPlate
+        place.over = previewPlate
+        place.strata, place.level = nil, nil
+        previewSet:Update(previewClass, place, showBadge, showOver, p)
+    end
+
+    -- Target frame: only for your target; always when it is ticked, else as
+    -- the fallback while its nameplate isn't showing the badge.
+    local tf = p.targetFrame
+    local showFrame = previewTarget and (tf.enabled or (tf.fallback and not showBadge))
+    if showFrame then
+        local place = previewFrameSet.place
+        place.host, place.badge, place.over = previewFrame, previewFrame, previewFrame
+        place.strata, place.level = nil, nil
+        previewFrameSet:Update(previewClass, place, true, false, p, p.targetFrame)
+    end
+
+    -- Say why the preview is empty, if it is.
+    if not (showBadge or showOver or showFrame) then
+        if not previewPlates and not previewTarget then
+            Notice(L["Nameplates off and not your target: nothing to mark it with."])
+        elseif not b.enabled and not o.enabled and not ns.BadgeOnTargetFrame(p) then
+            Notice(L["Everything is turned off (Visibility tab)."])
+        elseif not previewPlates then
+            Notice(L["Nameplates off: only the target frame badge can show."])
+        elseif not previewTarget then
+            Notice(L["The target frame badge shows once the mob is your target."])
+        end
+    end
 end
+
+-- For the tests: set the preview's toggles, and read its two visual sets.
+function Options.SetPreview(target, plates)
+    previewTarget, previewPlates = target, plates
+    Options.RefreshPreview()
+end
+function Options.PreviewSets() return previewSet, previewFrameSet end
 
 local function SetPreviewClass(class)
     previewClass = class
@@ -182,7 +222,7 @@ local function BuildPreview(parent)
     -- what "Nameplate frame" attaches to.
     local plate = CreateFrame("Frame", nil, box)
     plate:SetSize(150, 38)
-    plate:SetPoint("CENTER", box, "CENTER", -80, -22)
+    plate:SetPoint("CENTER", box, "CENTER", -190, -10)
     W.Skin(plate, { 0, 0, 0, 0 }, { 1, 1, 1, 0.12 })
     local name = W.Text(plate, L["Defias Pillager"], "GameFontNormalSmall", { 1, 0.82, 0 })
     name:SetPoint("TOP", 0, -4)
@@ -199,9 +239,44 @@ local function BuildPreview(parent)
     edge:SetColorTexture(0, 0, 0, 0.85)
     previewPlate, previewBar = plate, bar
     previewSet = ns.Visuals.Create(plate)
+    local plateCaption = W.Text(box, L["Nameplate"], "GameFontDisableSmall", C.dim)
+    plateCaption:SetPoint("TOP", plate, "BOTTOM", 0, -4)
+
+    -- A mock target unit frame, laid out like Blizzard's: name, health and
+    -- mana bars, portrait on the right. Its outline is what the target frame
+    -- badge attaches to.
+    local tf = CreateFrame("Frame", nil, box)
+    tf:SetSize(160, 54)
+    tf:SetPoint("CENTER", box, "CENTER", 20, -8)
+    W.Skin(tf, { 0.06, 0.05, 0.06, 0.95 }, { 0.55, 0.45, 0.22, 1 })
+    local portrait = tf:CreateTexture(nil, "ARTWORK")
+    portrait:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    portrait:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    portrait:SetSize(44, 44)
+    portrait:SetPoint("RIGHT", -5, 0)
+    local tfName = W.Text(tf, L["Defias Pillager"], "GameFontNormalSmall", { 1, 0.82, 0 })
+    tfName:SetPoint("TOPLEFT", 7, -6)
+    local function Bar(height, y, r, g, bl, value)
+        local sb = CreateFrame("StatusBar", nil, tf)
+        sb:SetSize(100, height)
+        sb:SetPoint("TOPLEFT", 6, y)
+        sb:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        sb:SetStatusBarColor(r, g, bl)
+        sb:SetMinMaxValues(0, 100)
+        sb:SetValue(value)
+        local bg = sb:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0, 0, 0, 0.7)
+    end
+    Bar(12, -22, 0.10, 0.75, 0.10, 72)
+    Bar(6, -36, 0.20, 0.35, 0.95, 100)
+    previewFrame = tf
+    previewFrameSet = ns.Visuals.Create(tf)
+    local frameCaption = W.Text(box, L["Target frame"], "GameFontDisableSmall", C.dim)
+    frameCaption:SetPoint("TOP", tf, "BOTTOM", 0, -4)
 
     previewNotice = W.Text(box, "", "GameFontHighlightSmall", C.dim)
-    previewNotice:SetPoint("BOTTOM", plate, "TOP", 0, 26)
+    previewNotice:SetPoint("TOP", box, "TOP", -60, -8)
     previewNotice:Hide()
 
     for i, class in ipairs(ns.CLASSES) do
@@ -209,12 +284,19 @@ local function BuildPreview(parent)
         btn:SetPoint("TOPRIGHT", -10, -10 - (i - 1) * 26)
         classButtons[class] = btn
     end
+
     local asTarget = W.Check(box, L["As your target"],
         function() return previewTarget end,
         function(v) previewTarget = v; Options.RefreshPreview() end,
-        L["Preview the mob as your current target, or as another mob on screen."])
-    asTarget:SetPoint("TOPRIGHT", -102, -118)
+        L["Preview the mob as your current target (it gets a target frame), or as another mob on screen."])
+    asTarget:SetPoint("BOTTOMRIGHT", -102, 12)
     Track(asTarget)
+    local platesOn = W.Check(box, L["Nameplates on"],
+        function() return previewPlates end,
+        function(v) previewPlates = v; Options.RefreshPreview() end,
+        L["Preview with enemy nameplates on or off (V in game). With them off, the badge can only show on the target frame."])
+    platesOn:SetPoint("BOTTOMLEFT", 10, 10)
+    Track(platesOn)
 end
 
 -- ---------------------------------------------------------------------------
@@ -224,14 +306,6 @@ end
 local function BuildGeneral(page)
     local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
 
-    left:Header(L["Visibility"])
-    left:Add(Check(page, L["Enable Elite Mob Visuals"], nil, "enabled"))
-    left:Add(Check(page, L["Only mobs you can attack"], nil, "hostileOnly",
-        L["Skip friendly elites and rares, such as town guards."]))
-    left:Add(Check(page, L["Only while in combat"], nil, "combatOnly"))
-    left:Add(Check(page, L["Hide on dead mobs"], nil, "hideDead"))
-
-    left:Gap(8)
     left:Header(L["Minimap"])
     left:Add(Options.MinimapCheck(page))
 
@@ -239,8 +313,10 @@ local function BuildGeneral(page)
     if ns.Plates.EllesmereLoaded() then
         left:Gap(8)
         left:Header(L["EllesmereUI Nameplates"])
-        local eui = W.Note(page, L["Detected. The visuals ride EllesmereUI's own plates: they sit beside its health bar and above its name, scale and fade with its plates, and draw over its auras. If you see two elite markers, hide EllesmereUI's own Rare/Elite indicator in its Nameplates > Display Layout options."], COL_W)
-        left:Add(eui, 96)
+        left:Add(Check(page, L["Hide EllesmereUI's own Rare/Elite icon"], nil, "hideNameplateIcons",
+            L["EllesmereUI's Rare/Elite indicator uses the same Blizzard icons and has its own size and slot, which these options can't move. This hides it on mobs Elite Mob Visuals marks (it also carries EllesmereUI's quest icon there), and gives it back on every other mob."]))
+        local eui = W.Note(page, L["Detected. The visuals ride EllesmereUI's own plates: beside its health bar and above its name, scaling and fading with its plates."], COL_W)
+        left:Add(eui, 48)
     end
 
     right:Header(L["Attach to"])
@@ -263,33 +339,49 @@ local function BuildGeneral(page)
 end
 
 local SCOPE_BADGE = { order = { "target", "all" }, names = { target = L["Your target only"], all = L["Every marked nameplate"] } }
-
--- "Show the badge on": the one choice of where the badge goes. Shared by the
--- Nameplate Badge and Target Frame tabs and the Settings page.
-local WHERE_NAMES = {
-    auto      = L["Nameplate, or the target frame without one"],
-    nameplate = L["Nameplate only"],
-    frame     = L["Target frame only"],
-    both      = L["Nameplate and target frame"],
-}
-local WHERE_TIP = L["Nameplate: the plate above the mob's head (enemy nameplates on). Target frame: your target's unit frame at the top of the screen (EllesmereUI's or Blizzard's). The first choice uses the nameplate and moves to the target frame when there isn't one: nameplates off, or the mob out of nameplate range."]
-
-function Options.WhereDropdown(parent, width)
-    return Dropdown(parent, L["Show the badge on"], "badge", "where", List(ns.WHERE_ORDER, WHERE_NAMES), WHERE_TIP, width)
-end
 local SCOPE_OVER = {
     order = { "all", "target", "nontarget" },
     names = { all = L["Every marked nameplate"], target = L["Your target only"], nontarget = L["All but your target"] },
 }
 
+-- The three visuals' on/off switches, shared by the Visibility tab and the
+-- game Settings page.
+local FALLBACK_LABEL = L["If the nameplate badge is off, use the target frame"]
+local FALLBACK_TIP = L["Shows the badge on your target frame whenever it isn't showing on your target's nameplate: the nameplate badge is turned off, nameplates are off, or the target is out of nameplate range. Not needed when Target frame badge is ticked."]
+
+-- Visibility: everything about what shows, and where, in one place. The
+-- other tabs only set how each visual looks.
+local function BuildVisibility(page)
+    local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
+
+    left:Header(L["Show"])
+    left:Add(Check(page, L["Enable Elite Mob Visuals"], nil, "enabled"))
+    left:Gap(4)
+    left:Add(Check(page, L["Nameplate badge"], "badge", "enabled",
+        L["The badge beside the nameplate above the mob's head (enemy nameplates on)."]))
+    left:Add(Dropdown(page, L["On which nameplates"], "badge", "scope", List(SCOPE_BADGE.order, SCOPE_BADGE.names),
+        L["Your target only, or every elite and rare with a nameplate on screen."]), nil, 22)
+    left:Add(Check(page, L["Overhead marker"], "overhead", "enabled",
+        L["The marker above elite and rare mobs' nameplates (their heads)."]))
+    left:Add(Dropdown(page, L["On which nameplates"], "overhead", "scope", List(SCOPE_OVER.order, SCOPE_OVER.names)), nil, 22)
+    left:Add(Check(page, L["Target frame badge"], "targetFrame", "enabled",
+        L["The badge on your target's unit frame at the top of the screen (EllesmereUI's or Blizzard's), always, alongside the nameplate badge."]))
+    left:Add(Check(page, FALLBACK_LABEL, "targetFrame", "fallback", FALLBACK_TIP), nil, 22)
+
+    right:Header(L["Filters"])
+    right:Add(Check(page, L["Only mobs you can attack"], nil, "hostileOnly",
+        L["Skip friendly elites and rares, such as town guards."]))
+    right:Add(Check(page, L["Only while in combat"], nil, "combatOnly"))
+    right:Add(Check(page, L["Hide on dead mobs"], nil, "hideDead"))
+    right:Gap(8)
+    local note = W.Note(page, L["The preview above follows these settings. Use its Nameplates on and As your target boxes to see each case, and test mode to try them on real nameplates."], COL_W)
+    right:Add(note, 60)
+end
+
 local function BuildBadge(page)
     local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
 
-    left:Header(L["Badge"])
-    left:Add(Check(page, L["Show the badge"], "badge", "enabled"))
-    left:Add(Options.WhereDropdown(page))
-    left:Add(Dropdown(page, L["On which nameplates"], "badge", "scope", List(SCOPE_BADGE.order, SCOPE_BADGE.names),
-        L["Your target only, or every elite and rare with a nameplate on screen."]))
+    left:Header(L["Nameplate badge"])
     left:Add(Dropdown(page, L["Style"], "badge", "style", StyleOptions(),
         L["Bundled styles take the classification colour. Blizzard styles use the game's own art for each classification."]))
     left:Add(Dropdown(page, L["Position"], "badge", "point", List(ns.PLACEMENT_ORDER, ns.PLACEMENT_NAMES)))
@@ -313,8 +405,6 @@ local function BuildOverhead(page)
     local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
 
     left:Header(L["Overhead marker"])
-    left:Add(Check(page, L["Show the overhead marker"], "overhead", "enabled"))
-    left:Add(Dropdown(page, L["Show on"], "overhead", "scope", List(SCOPE_OVER.order, SCOPE_OVER.names)))
     left:Add(Dropdown(page, L["Style"], "overhead", "style",
         StyleOptions(nil, { { value = "none", text = L["Text only"] } })))
     left:Add(Check(page, L["Tint with the classification colour"], "overhead", "tint"))
@@ -395,8 +485,6 @@ local function BuildTargetFrame(page)
     local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
 
     left:Header(L["Target frame badge"])
-    left:Add(Check(page, L["Show the badge"], "badge", "enabled"))
-    left:Add(Options.WhereDropdown(page))
     left:Add(Dropdown(page, L["Attach to"], "targetFrame", "attach", List(
         { "frame", "screen" },
         { frame = L["Target frame (found automatically)"], screen = L["Free position on screen"] }),
@@ -418,11 +506,86 @@ local function BuildTargetFrame(page)
     right:Add(Slider(page, L["Glow strength"], "targetFrame", "glowAlpha", 0.1, 1, 0.05, "%.2f"))
 end
 
+-- Backgrounds: a plain rectangle behind each visual's art. One set of
+-- controls, pointed at the visual chosen at the top (bgTarget).
+local bgTarget = "badge"
+local BG_TARGETS = {
+    order = { "badge", "targetFrame", "overhead" },
+    names = { badge = L["Nameplate badge"], targetFrame = L["Target frame badge"], overhead = L["Overhead marker"] },
+}
+
+local function BG() return P()[bgTarget].bg end
+
+local function BgField(key)
+    return function() return BG()[key] end,
+           function(v) BG()[key] = v; Changed() end
+end
+
+local function BgCheck(page, label, key, tip)
+    local get, set = BgField(key)
+    local cb = W.Check(page, label, get, set, tip)
+    cb.keepWidth = true
+    return cb
+end
+
+local function BgSlider(page, label, key, minV, maxV, step, fmt)
+    local get, set = BgField(key)
+    return W.Slider(page, label, minV, maxV, step, get, set, fmt, COL_W)
+end
+
+-- A label with a colour swatch at the right.
+local function BgColorRow(page, label, key)
+    local row = CreateFrame("Frame", nil, page)
+    row:SetSize(COL_W, 22)
+    local text = W.Text(row, label)
+    text:SetPoint("LEFT")
+    local swatch = W.Color(row,
+        function() return BG()[key] end,
+        function(r, g, b)
+            local c = BG()[key]
+            c.r, c.g, c.b = r, g, b
+            Changed()
+        end, nil, label)
+    swatch:SetPoint("RIGHT")
+    function row:Refresh() swatch:Refresh() end
+    row.height = 28
+    return row
+end
+
+local function BuildBackground(page)
+    local left, right = Column(page, LEFT_X), Column(page, RIGHT_X)
+
+    left:Header(L["Background"])
+    left:Add(W.Dropdown(page, L["Background for"], COL_W, List(BG_TARGETS.order, BG_TARGETS.names),
+        function() return bgTarget end,
+        function(v) bgTarget = v; Options.RefreshControls() end,
+        L["Each visual has its own background. Pick one, then set it up below."]))
+    left:Add(BgCheck(page, L["Show a background"], "enabled",
+        L["A plain rectangle behind the icon, sized however you like."]))
+    left:Add(BgSlider(page, L["Width"], "width", 4, 200, 1))
+    left:Add(BgSlider(page, L["Height"], "height", 4, 200, 1))
+    left:Add(BgSlider(page, L["Horizontal offset"], "x", -60, 60, 1))
+    left:Add(BgSlider(page, L["Vertical offset"], "y", -60, 60, 1))
+
+    right:Header(L["Colour and border"])
+    right:Add(BgColorRow(page, L["Background colour"], "color"))
+    right:Add(BgSlider(page, L["Background opacity"], "alpha", 0, 1, 0.05, "%.2f"))
+    right:Add(BgCheck(page, L["Border"], "border"))
+    right:Add(BgCheck(page, L["Tint the border with the classification colour"], "borderTint",
+        L["Gold for elites, blue for rare elites and so on (the Classifications tab sets them). Overrides the border colour below."]))
+    right:Add(BgColorRow(page, L["Border colour"], "borderColor"))
+    right:Add(BgSlider(page, L["Border thickness"], "borderSize", 1, 6, 1))
+    local note = W.Note(page, L["The preview above shows it. A mirrored pair gets a background each; a text-only marker's background frames its label."], COL_W)
+    right:Add(note, 40)
+end
+
 local TABS = {
     { key = "general",  text = L["General"],         build = BuildGeneral },
+    { key = "visible",  text = L["Visibility"],      build = BuildVisibility },
     { key = "badge",    text = L["Nameplate Badge"], build = BuildBadge },
     { key = "overhead", text = L["Overhead Marker"], build = BuildOverhead },
     { key = "frame",    text = L["Target Frame"],    build = BuildTargetFrame },
+    { key = "bg",       text = L["Background"],      build = BuildBackground },
     { key = "classes",  text = L["Classifications"], build = BuildClasses },
 }
 
@@ -485,9 +648,9 @@ local function Build()
 
     -- Tabs and pages.
     for i, tab in ipairs(TABS) do
-        tab.button = W.Button(win, tab.text, 118, function() SelectTab(tab.key) end)
+        tab.button = W.Button(win, tab.text, 92, function() SelectTab(tab.key) end)
         tab.button:SetHeight(24)
-        tab.button:SetPoint("TOPLEFT", 14 + (i - 1) * 123, -216)
+        tab.button:SetPoint("TOPLEFT", 14 + (i - 1) * 96, -216)
         local page = CreateFrame("Frame", nil, win)
         page:SetPoint("TOPLEFT", 14, -246)
         page:SetPoint("BOTTOMRIGHT", -14, 46)
@@ -577,11 +740,15 @@ function Options.RegisterSettingsPage()
 
     Section(L["General"])
     Add(Check(panel, L["Enable Elite Mob Visuals"], nil, "enabled"))
-    Add(Check(panel, L["Show the badge"], "badge", "enabled",
-        L["The badge on elite, rare and boss mobs: on the nameplate, the target frame or both."]))
-    Add(Options.WhereDropdown(panel, 300), 50)
-    Add(Check(panel, L["Show the overhead marker"], "overhead", "enabled",
+    Add(Check(panel, L["Nameplate badge"], "badge", "enabled",
+        L["The badge beside the nameplate above the mob's head."]))
+    Add(Check(panel, L["Overhead marker"], "overhead", "enabled",
         L["The marker above elite and rare mobs' nameplates."]))
+    Add(Check(panel, L["Target frame badge"], "targetFrame", "enabled",
+        L["The badge on your target's unit frame, always."]))
+    local fallback = Add(Check(panel, FALLBACK_LABEL, "targetFrame", "fallback", FALLBACK_TIP))
+    fallback:ClearAllPoints()
+    fallback:SetPoint("TOPLEFT", 42, y + 26)
     Add(Check(panel, L["Only mobs you can attack"], nil, "hostileOnly",
         L["Skip friendly elites and rares, such as town guards."]))
     Add(Check(panel, L["Only while in combat"], nil, "combatOnly"))

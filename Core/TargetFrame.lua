@@ -1,9 +1,10 @@
 -- =============================================================================
 -- Elite Mob Visuals: the badge on the target unit frame
--- The same badge, on the target frame at the top of the screen. badge.where
--- decides when: "frame" and "both" always; "auto" (the default) only while
--- the badge isn't showing on the target's nameplate (nameplates off, out of
--- range), so it never doubles up; "nameplate" never.
+-- The same badge, on the target frame at the top of the screen. The
+-- Visibility tab decides when: targetFrame.enabled shows it always;
+-- targetFrame.fallback (the default) only while the badge isn't showing on
+-- the target's nameplate (nameplate badge off, nameplates off, out of range),
+-- so it never doubles up.
 --
 -- It attaches to whichever target frame is in use: EllesmereUI's, ElvUI's,
 -- Shadowed Unit Frames' or Blizzard's (EllesmereUI parks Blizzard's on a
@@ -141,7 +142,7 @@ function TF.Update()
     local cdb = class and p.classes[class]
     local show = cdb and cdb.show and Classify.Passes("target", p)
     -- "auto": the target frame only stands in while the nameplate can't.
-    if show and p.badge.where == "auto" and ns.TargetPlateBadgeShown() then
+    if show and not t.enabled and ns.TargetPlateBadgeShown() then
         show = false
     end
     if not show then

@@ -50,26 +50,34 @@ ns.CLASS_LABELS = {
 -- Elements
 -- ---------------------------------------------------------------------------
 
+-- An element is two frames: the element itself, which is placed and holds the
+-- background (PaintBackground), and its art frame on top, which holds the
+-- icon, glow and label. Animations run on the art frame only, so the
+-- background stays still behind a pulsing, bobbing or spinning icon.
 local function CreateElement(parent, withLabel)
     local f = CreateFrame("Frame", nil, parent)
     f:SetSize(1, 1)
     f:Hide()
-    f.glow = f:CreateTexture(nil, "BACKGROUND")
+    local art = CreateFrame("Frame", nil, f)
+    art:SetAllPoints(f)
+    f.art = art
+    f.glow = art:CreateTexture(nil, "BACKGROUND")
     f.glow:SetTexture(Media.GLOW)
     f.glow:SetBlendMode("ADD")
     f.glow:SetPoint("CENTER")
-    f.tex = f:CreateTexture(nil, "ARTWORK")
+    f.tex = art:CreateTexture(nil, "ARTWORK")
     f.tex:SetAllPoints()
     if withLabel then
-        f.label = f:CreateFontString(nil, "OVERLAY")
+        f.label = art:CreateFontString(nil, "OVERLAY")
         f.label:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
         f.label:Hide()
     end
     return f
 end
 
--- Animations are built the first time each kind is used. Spin turns the art
--- only; the rest move the whole element (art, glow and label).
+-- Animations are built the first time each kind is used. Spin turns the icon
+-- only; the rest move the art frame (icon, glow and label), never the
+-- background.
 local function BuildAnim(f, kind)
     local group, anim
     if kind == "spin" then
@@ -79,7 +87,7 @@ local function BuildAnim(f, kind)
         anim:SetDegrees(-360)
         anim:SetDuration(4)
     else
-        group = f:CreateAnimationGroup()
+        group = f.art:CreateAnimationGroup()
         group:SetLooping("BOUNCE")
         if kind == "pulse" then
             anim = group:CreateAnimation("Alpha")
@@ -127,13 +135,7 @@ local function Paint(f, spec, opts, color, mirrored)
     f:SetSize(w, size)
 
     local tex = f.tex
-    tex:SetTexture(spec.file)
-    local l, r, t, b = spec.coords[1], spec.coords[2], spec.coords[3], spec.coords[4]
-    if mirrored then
-        tex:SetTexCoord(r, l, t, b)
-    else
-        tex:SetTexCoord(l, r, t, b)
-    end
+    Media.Apply(tex, spec, mirrored)
     if opts.tint and spec.tintable then
         tex:SetVertexColor(color.r, color.g, color.b)
     else
@@ -149,6 +151,52 @@ local function Paint(f, spec, opts, color, mirrored)
         f.glow:Show()
     else
         f.glow:Hide()
+    end
+end
+
+-- The optional background: a plain rectangle of its own size behind the art,
+-- with an optional border drawn inside its edge. centerOn: what it centres on
+-- (the element, or the label for a text-only marker). classColor: the
+-- classification colour, for a border set to take it (borderTint).
+local function PaintBackground(f, bg, centerOn, classColor)
+    if not (bg and bg.enabled) then
+        if f.bg then
+            f.bg:Hide()
+            for i = 1, 4 do f.bgEdges[i]:Hide() end
+        end
+        return
+    end
+    if not f.bg then
+        f.bg = f:CreateTexture(nil, "BACKGROUND", nil, -8)
+        f.bgEdges = {}
+        for i = 1, 4 do f.bgEdges[i] = f:CreateTexture(nil, "BORDER") end
+    end
+    local t = f.bg
+    t:ClearAllPoints()
+    t:SetPoint("CENTER", centerOn or f, "CENTER", bg.x or 0, bg.y or 0)
+    t:SetSize(bg.width, bg.height)
+    local c = bg.color
+    t:SetColorTexture(c.r, c.g, c.b, bg.alpha or 1)
+    t:Show()
+
+    local e, s = f.bgEdges, bg.borderSize or 1
+    if bg.border then
+        local bc = (bg.borderTint and classColor) or bg.borderColor
+        local sides = {
+            { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" },
+            { "TOPLEFT", "BOTTOMLEFT" }, { "TOPRIGHT", "BOTTOMRIGHT" },
+        }
+        for i = 1, 4 do
+            local edge = e[i]
+            edge:ClearAllPoints()
+            edge:SetPoint(sides[i][1], t, sides[i][1])
+            edge:SetPoint(sides[i][2], t, sides[i][2])
+            if i <= 2 then edge:SetHeight(s) else edge:SetWidth(s) end
+            edge:SetColorTexture(bc.r, bc.g, bc.b, 1)
+            edge:Show()
+        end
+    else
+        for i = 1, 4 do e[i]:Hide() end
     end
 end
 
@@ -204,6 +252,11 @@ local function Attach(e, place, anchor)
         end
         Raise(e, anchor)
     end
+    -- The art (icon, glow, label) always one level above the background.
+    if e.art then
+        local level = Readable(e:GetFrameLevel())
+        if type(level) == "number" then e.art:SetFrameLevel(level + 1) end
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -235,10 +288,32 @@ local function HideElement(e, home)
     if home and e:GetParent() ~= home then e:SetParent(home) end
 end
 
+-- The nameplate addon's own icon, faded out while this set marks the mob
+-- (hideNameplateIcons), and given back otherwise. Its plates are pooled, so
+-- it is restored whenever this set stops drawing.
+local function RestoreOwnIcon(self)
+    if self.hiddenIcon then
+        pcall(self.hiddenIcon.SetAlpha, self.hiddenIcon, 1)
+        self.hiddenIcon = nil
+    end
+end
+
+local function SetOwnIcon(self, icon, hide)
+    if self.hiddenIcon and self.hiddenIcon ~= icon then RestoreOwnIcon(self) end
+    if not icon then return end
+    if hide then
+        pcall(icon.SetAlpha, icon, 0)
+        self.hiddenIcon = icon
+    else
+        RestoreOwnIcon(self)
+    end
+end
+
 function Set:HideAll()
     HideElement(self.badge, self.parent)
     HideElement(self.badge2, self.parent)
     HideElement(self.overhead, self.parent)
+    RestoreOwnIcon(self)
     self.key = nil
 end
 
@@ -257,6 +332,8 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
     local cdb = profile.classes[class]
     local color = cdb.color
 
+    SetOwnIcon(self, place.ownIcon, profile.hideNameplateIcons and (showBadge or showOverhead))
+
     -- Badge, and its mirrored pair.
     local b = badgeOpts or profile.badge
     if showBadge then
@@ -270,6 +347,7 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
         local e = self:Element("badge")
         Attach(e, place, anchor)
         Paint(e, spec, b, color, mirrored)
+        PaintBackground(e, b.bg, nil, color)
         e:ClearAllPoints()
         e:SetPoint(spot.my, anchor, point, b.x, b.y)
         e:Show()
@@ -280,6 +358,13 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
             local e2 = self:Element("badge2")
             Attach(e2, place, anchor)
             Paint(e2, spec, b, color, not mirrored)
+            -- Mirrored pair: the background's horizontal offset mirrors too.
+            PaintBackground(e2, b.bg and b.bg.enabled and {
+                enabled = true, width = b.bg.width, height = b.bg.height,
+                x = -(b.bg.x or 0), y = b.bg.y, color = b.bg.color, alpha = b.bg.alpha,
+                border = b.bg.border, borderColor = b.bg.borderColor, borderSize = b.bg.borderSize,
+                borderTint = b.bg.borderTint,
+            } or nil, nil, color)
             e2:ClearAllPoints()
             e2:SetPoint(other.my, anchor, spot.mirror, -b.x, b.y)
             e2:Show()
@@ -325,6 +410,8 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
         else
             label:Hide()
         end
+        -- Text only: the background frames the label instead.
+        PaintBackground(e, o.bg, styleKey == "none" and label or nil, color)
         e:Show()
         SetAnim(e, o.anim)
     else

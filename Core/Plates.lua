@@ -107,11 +107,15 @@ function Plates.Resolve(nameplate, unit, out)
         out.host, out.bar = eui, bar
         out.top = NameAboveBar(eui.name, bar) and eui.name or bar
         out.strata, out.level, out.addon = EUI_STRATA, EUI_LEVEL, "EllesmereUI"
+        -- Its own Rare/Elite indicator: the same Blizzard icons, in its own
+        -- slot. EllesmereUI only ever shows and hides this frame, so the
+        -- visuals can fade it out on mobs they mark (hideNameplateIcons).
+        out.ownIcon = type(eui.classFrame) == "table" and eui.classFrame or nil
         return out
     end
 
     local okBar, bar = pcall(FindHealthBar, nameplate)
     out.host, out.bar, out.top = nameplate, okBar and bar or nil, nameplate
-    out.strata, out.level, out.addon = nil, nil, nil
+    out.strata, out.level, out.addon, out.ownIcon = nil, nil, nil, nil
     return out
 end

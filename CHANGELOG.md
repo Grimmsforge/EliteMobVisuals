@@ -8,15 +8,23 @@ First version, for WoW Forever (Interface 16001).
   9 positions, mirrored pairs, size, offsets, opacity, tint, glow and
   animations.
 - Overhead marker above marked mobs, with an optional text label.
-- Show the badge on the nameplate, the target frame (EllesmereUI's or
-  Blizzard's, also ElvUI and Shadowed Unit Frames), or both. The default uses
-  the nameplate and moves to the target frame when there's no nameplate
-  (nameplates off, or out of range). The target frame badge has its own size,
-  position, style and a free, draggable position.
+- Visibility tab: tick the nameplate badge, the overhead marker and the
+  target frame badge (EllesmereUI's or Blizzard's, also ElvUI and Shadowed
+  Unit Frames), plus "If the nameplate badge is off, use the target frame",
+  which also covers nameplates off and out of range. The filters are there
+  too, and the other tabs only set looks. The target frame badge has its own
+  size, position and style, and a free, draggable position.
+- Animations move the art only; a background stays still behind it.
 - Test mode shows the badge on every nameplate, whatever "Show on" says, and
   says when there is nothing it can show. `/emv debug` prints what the addon
   sees on each plate and on the target frame.
 - Per-classification on/off, colour and style overrides.
+- Backgrounds: a rectangle behind each visual's art, with its own width,
+  height, offset, colour, opacity and optional border, which can take the
+  classification colour.
+- Hides EllesmereUI's own Rare/Elite icon on mobs this addon marks (option,
+  on by default), so the Blizzard icon style isn't shown twice.
+- Blizzard styles are drawn by atlas name, at the badge's size and position.
 - Filters: only mobs you can attack, only in combat, hidden on dead mobs.
 - Options window with a live preview and test mode (`/emv test`).
 - Settings page in the game's Settings (AddOns) with the everyday switches

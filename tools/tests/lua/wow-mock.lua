@@ -92,7 +92,10 @@ function Methods:Play() self.__playing = true end
 function Methods:Stop() self.__playing = false end
 function Methods:SetText(t) self.__text = t end
 function Methods:GetText() return self.__text end
-function Methods:SetTexture(t) self.__texture = t end
+function Methods:SetTexture(t) self.__texture = t; self.__atlas = nil end
+function Methods:SetAtlas(name) self.__atlas = name; self.__texture = nil end
+function Methods:SetSize(w, h) self.__w, self.__h = w, h end
+function Methods:SetColorTexture(r, g, b, a) self.__color = { r, g, b, a } end
 function Methods:SetAlpha(a) self.__alpha = a end
 function Methods:CreateTexture() return NewObject("Texture", self) end
 function Methods:CreateFontString() return NewObject("FontString", self) end

@@ -14,27 +14,34 @@ works alongside any nameplate addon, with no libraries and no dependencies.
 
 - **Target badge.** A badge beside your target's nameplate when it is an elite,
   rare, rare elite or boss. You can show it on every marked nameplate instead.
-- **Choose where the badge shows.** One setting, *Show the badge on*:
-  - **Nameplate, or the target frame without one** (default): on the
-    nameplate above the mob's head. It moves to your target frame when
-    there's no nameplate (nameplates off, or out of range), so you never
-    get two.
-  - **Nameplate only**
-  - **Target frame only**: your target's unit frame at the top of the
-    screen.
-  - **Both**
+- **Visibility in one place.** The Visibility tab has a box to tick for each
+  visual:
+  - **Nameplate badge**: on your target's nameplate, or every marked one.
+  - **Overhead marker**: on every marked mob, your target only, or all but
+    your target.
+  - **Target frame badge**: always on your target's unit frame.
+  - **If the nameplate badge is off, use the target frame** (on by default):
+    the target frame steps in whenever the nameplate badge isn't showing on
+    your target. That covers the nameplate badge being turned off,
+    nameplates being off, and the target being out of nameplate range.
 
-  The target frame can be EllesmereUI's, Blizzard's standard `TargetFrame`,
-  ElvUI's or Shadowed Unit Frames', whichever is in use. With no target frame,
-  or if you choose the free position, the badge sits wherever you drag it.
-- **Overhead marker.** A marker above elite and rare mobs' nameplates, which
-  you can turn off. It can show on every marked mob, on your target only, or on
-  every mob except your target, with an optional "Elite" / "Rare" text label.
+  The filters (only mobs you can attack, only in combat, hide on dead mobs)
+  are there too. The other tabs only set how each visual looks. The target
+  frame can be EllesmereUI's, Blizzard's standard `TargetFrame`, ElvUI's or
+  Shadowed Unit Frames', whichever is in use. With no target frame, or if you
+  choose the free position, the badge sits wherever you drag it.
+- **Overhead marker.** A marker above elite and rare mobs' nameplates, with an
+  optional "Elite" / "Rare" text label.
 - **13 styles.** Eight bundled styles (Gilded Wing, Heraldic Crest, Faceted
   Star, Skull, Cut Gem, Crown, Chevron, Arrow), tinted to each classification's
   colour. Five use the game's own art: the nameplate classification icon, the
   target-frame dragon, the classic vanilla dragon, the minimap rare vignette
   and the raid target icons.
+- **Backgrounds.** Each visual (the nameplate badge, the target frame badge
+  and the overhead marker) can have a plain rectangle behind its art. You set
+  its width, height, offset, colour and opacity, plus an optional border
+  with its own colour and thickness. The border can take the classification
+  colour instead.
 - **Per-classification settings.** Each classification has its own on/off
   switch and colour, and can have its own badge and marker style (a gold wing
   for elites and a star for rares, say).
@@ -238,7 +245,13 @@ frame. When a plate goes away, the visuals return to the Blizzard nameplate,
 so EllesmereUI's pooled plates never carry them to another mob.
 
 EllesmereUI has its own Rare/Elite indicator (Nameplates > Display Layout).
-Hide it there if you see two.
+It uses the same four Blizzard icons as the *Blizzard Nameplate Icon* style,
+in its own slot and at its own size, so these options can't move it. With
+*Hide EllesmereUI's own Rare/Elite icon* (General tab, on by default) the
+addon fades it out on every mob it marks, and gives it back as soon as the
+mob is no longer marked. EllesmereUI only ever shows and hides that frame,
+never fades it, so the two don't fight. On a marked mob it also carries
+EllesmereUI's quest icon.
 
 ## Target frames
 

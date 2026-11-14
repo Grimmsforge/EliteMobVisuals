@@ -123,8 +123,8 @@ function ns.SetTestMode(on, class, quiet)
     local p = ns.db.profile
     if not p.enabled then
         ns.Print(L["The addon is turned off, so nothing shows. Type /emv on."])
-    elseif not p.badge.enabled and not p.overhead.enabled then
-        ns.Print(L["The badge and the overhead marker are both turned off, so there is nothing to show."])
+    elseif not p.badge.enabled and not p.overhead.enabled and not ns.BadgeOnTargetFrame(p) then
+        ns.Print(L["The nameplate badge, overhead marker and target frame badge are all turned off (Visibility tab), so there is nothing to show."])
     elseif not p.classes[Classify.testClass].show then
         ns.Print(string.format(L["%s is turned off in the Classifications tab, so nothing shows."],
             ns.CLASS_LABELS[Classify.testClass]))
@@ -343,15 +343,15 @@ function ns.Debug()
     Line(string.format("v%s enabled=%s test=%s anchor=%s hostileOnly=%s combatOnly=%s",
         ns.VERSION, tostring(p.enabled), tostring(Classify.testClass), tostring(p.anchor),
         tostring(p.hostileOnly), tostring(p.combatOnly)))
-    Line(string.format("badge on=%s where=%s showOn=%s style=%s size=%s  marker on=%s showOn=%s style=%s",
-        tostring(b.enabled), tostring(b.where), b.scope, b.style, tostring(b.size), tostring(o.enabled), o.scope, o.style))
+    Line(string.format("nameplate badge on=%s showOn=%s style=%s size=%s  marker on=%s showOn=%s style=%s",
+        tostring(b.enabled), b.scope, b.style, tostring(b.size), tostring(o.enabled), o.scope, o.style))
     local clientPlates = GetNamePlates and #(GetNamePlates() or {}) or -1
     Line(string.format("plates tracked=%d client=%d targetPlate=%s EllesmereUI=%s",
         CountPlates(), clientPlates, targetPlate and "yes" or "no", tostring(ns.Plates.EllesmereLoaded())))
     local t = p.targetFrame
     local _, frameName = ns.TargetFrame.FindFrame()
-    Line(string.format("badge where=%s  target frame allowed=%s attach=%s found=%s shown=%s at=%s target=%s marked=%s",
-        tostring(b.where), tostring(ns.BadgeOnTargetFrame(p)), t.attach, tostring(frameName), tostring(ns.TargetFrame.state.shown),
+    Line(string.format("target frame on=%s fallback=%s attach=%s found=%s shown=%s at=%s target=%s marked=%s",
+        tostring(t.enabled), tostring(t.fallback), t.attach, tostring(frameName), tostring(ns.TargetFrame.state.shown),
         tostring(ns.TargetFrame.state.anchor), SafeCall(UnitName, "target"), tostring(Classify.Get("target"))))
 
     local listed = 0

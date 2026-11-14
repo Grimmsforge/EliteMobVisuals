@@ -156,15 +156,17 @@ SlashCmdList.ELITEMOBVISUALS("test")
 __check(__ShownElements(normal) == 0, "test mode off: the normal mob is unmarked again")
 -- Turning test mode on with nothing to show says so.
 p.badge.enabled = false
+p.targetFrame.fallback = false
 chatBefore = #__chat
 SlashCmdList.ELITEMOBVISUALS("test")
 local warned = false
 for i = chatBefore + 1, #__chat do
-    if __chat[i]:find("both turned off") then warned = true end
+    if __chat[i]:find("all turned off") then warned = true end
 end
-__check(warned, "test mode explains when the badge and marker are both off")
+__check(warned, "test mode explains when the badge, marker and target frame badge are all off")
 SlashCmdList.ELITEMOBVISUALS("test")
 p.badge.enabled = true
+p.targetFrame.fallback = true
 p.badge.scope = "all"
 p.overhead.enabled = true
 ns.NotifySettingsChanged()
@@ -189,6 +191,34 @@ __check(__ShownElements(elite) >= 1, "/emv on shows again")
 SlashCmdList.ELITEMOBVISUALS("")
 __check(EliteMobVisualsOptionsFrame and EliteMobVisualsOptionsFrame:IsShown(), "options window opens")
 ns.Options.RefreshControls()
+
+-- The preview shows the badge where the game would: on the mock nameplate,
+-- the mock target frame, or both, following the Visibility tab.
+local plateSet, frameSet = ns.Options.PreviewSets()
+local function On(set, key) return set[key] ~= nil and set[key]:IsShown() end
+-- Visibility settings as (nameplate badge, target frame badge, fallback).
+local function Preview(badge, frame, fallback, target, plates)
+    p.badge.enabled, p.targetFrame.enabled, p.targetFrame.fallback = badge, frame, fallback
+    ns.NotifySettingsChanged()
+    ns.Options.SetPreview(target, plates)
+    return On(plateSet, "badge"), On(frameSet, "badge")
+end
+local onPlate, onFrame = Preview(true, false, true, true, true)
+__check(onPlate and not onFrame, "preview default, nameplates on: badge on the nameplate only")
+onPlate, onFrame = Preview(true, false, true, true, false)
+__check(not onPlate and onFrame, "preview default, nameplates off: badge moves to the target frame")
+onPlate, onFrame = Preview(false, false, true, true, true)
+__check(not onPlate and onFrame, "preview nameplate badge off + fallback: badge on the target frame")
+onPlate, onFrame = Preview(false, true, false, true, true)
+__check(not onPlate and onFrame, "preview target frame only: badge on the target frame")
+onPlate, onFrame = Preview(true, true, false, true, true)
+__check(onPlate and onFrame, "preview both: badge on the nameplate and the target frame")
+onPlate, onFrame = Preview(true, false, false, true, false)
+__check(not onPlate and not onFrame, "preview nameplate only, nameplates off: nothing")
+onPlate, onFrame = Preview(true, true, false, false, true)
+__check(not onFrame, "preview not your target: no target frame badge")
+Preview(true, false, true, true, true)
+
 for _, class in ipairs(ns.CLASSES) do
     p.classes[class].show = false
     ns.NotifySettingsChanged()
@@ -217,6 +247,7 @@ eui:SetParent(np8)
 eui.nameplate = np8
 eui.health = CreateFrame("StatusBar", nil, eui)
 eui.name = eui:CreateFontString()
+eui.classFrame = CreateFrame("Frame", nil, eui)   -- its own Rare/Elite indicator
 __Fire("NAME_PLATE_UNIT_ADDED", "nameplate8")
 __check(__ShownElements(np8) >= 1 and __ShownElements(eui) == 0, "EllesmereUI not attached yet: visuals on the nameplate")
 EllesmereNameplates_NS.plates.nameplate8 = eui
@@ -233,6 +264,13 @@ end
 __check(lifted, "EllesmereUI: drawn at MEDIUM strata, level 850 (above its auras, under its text)")
 __check(onName, "EllesmereUI: overhead marker sits above its name")
 __check(onBar, "EllesmereUI: badge sits beside its health bar")
+__check(eui.classFrame.__alpha == 0, "EllesmereUI: its own Rare/Elite icon is hidden on a marked mob")
+p.hideNameplateIcons = false
+ns.NotifySettingsChanged()
+__check(eui.classFrame.__alpha == 1, "EllesmereUI: its own icon is back with the option off")
+p.hideNameplateIcons = true
+ns.NotifySettingsChanged()
+__check(eui.classFrame.__alpha == 0, "EllesmereUI: hidden again with the option on")
 p.anchor = "plate"
 ns.NotifySettingsChanged()
 local _, plateShown = __ShownElements(eui)
@@ -244,11 +282,80 @@ local leftOnEui = 0
 for _, c in ipairs(eui.__children) do if rawget(c, "tex") then leftOnEui = leftOnEui + 1 end end
 __check(leftOnEui == 0, "EllesmereUI: removed plate hands its visuals back to the nameplate (none left on the pooled plate)")
 __check(__ShownElements(np8) == 0, "EllesmereUI: removed plate's visuals hidden")
+__check(eui.classFrame.__alpha == 1, "EllesmereUI: removed plate gets its own icon back (its plates are pooled)")
 EllesmereNameplates_NS = nil
+
+-- Blizzard styles size and place like any other: drawn by atlas name at the
+-- badge's size (the mock atlas is 2:1), not at the atlas's own size.
+local function Badge(plate)
+    for _, c in ipairs(plate.__children) do
+        if rawget(c, "tex") and not rawget(c, "label") and c.__shown then return c end
+    end
+end
+p.badge.style = "blizzIcon"
+p.badge.size = 40
+p.badge.point = "LEFT"
+p.badge.x, p.badge.y = 7, -3
+ns.NotifySettingsChanged()
+local bz = Badge(rare)
+__check(bz and bz.tex.__atlas == "nameplates-icon-rareelite", "Blizzard Nameplate Icon draws the rare atlas by name")
+__check(bz and bz.__w == 80 and bz.__h == 40, "Blizzard style takes the badge size")
+__check(bz and bz.__points[1][4] == 7 and bz.__points[1][5] == -3, "Blizzard style takes the badge offsets")
+p.badge.size = 20
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and bz.__w == 40 and bz.__h == 20, "Blizzard style resizes")
+p.badge.flip = true
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and bz.tex.__coords and bz.tex.__coords[1] == 0.5 and bz.tex.__coords[2] == 0.1, "Blizzard style mirrors with the atlas's own crop")
+p.badge.flip = false
+
+-- Background: a rectangle of its own size behind the art, with a border.
+local bgs = p.badge.bg
+bgs.enabled, bgs.width, bgs.height = true, 50, 30
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and bz.bg and bz.bg.__shown and bz.bg.__w == 50 and bz.bg.__h == 30, "background drawn at its own width and height")
+__check(bz and bz.bgEdges[1].__shown and bz.bgEdges[4].__shown, "background border on")
+-- Animations move the art only; the background stays put.
+for _, kind in ipairs({ "pulse", "breathe", "bob" }) do
+    p.badge.anim = kind
+    ns.NotifySettingsChanged()
+    bz = Badge(rare)
+    local group = bz and bz.anims and bz.anims[kind]
+    __check(group and group.__parent == bz.art and group.__playing, kind .. " animates the art frame")
+end
+__check(bz.bg.__parent == bz and bz.bgEdges[1].__parent == bz, "background and border live on the element, outside the animated art")
+__check(bz.tex.__parent == bz.art and bz.glow.__parent == bz.art, "icon and glow live on the animated art")
+p.badge.anim = "none"
+ns.NotifySettingsChanged()
+__check(bz and bz.bgEdges[1].__color[1] == bgs.borderColor.r, "border uses the border colour")
+bgs.borderTint = true
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+local rc = p.classes.rare.color
+__check(bz and bz.bgEdges[2].__color[1] == rc.r and bz.bgEdges[2].__color[3] == rc.b, "border tinted with the classification colour (rare)")
+bgs.borderTint = false
+bgs.border = false
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and not bz.bgEdges[1].__shown, "background border off")
+bgs.color.r, bgs.alpha = 0.5, 0.25
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and bz.bg.__color[1] == 0.5 and bz.bg.__color[4] == 0.25, "background colour and opacity")
+bgs.enabled = false
+ns.NotifySettingsChanged()
+bz = Badge(rare)
+__check(bz and not bz.bg.__shown, "background off")
+p.badge.style, p.badge.size, p.badge.x, p.badge.y = "wing", 26, 0, 0
+bgs.border, bgs.color.r, bgs.alpha = true, 0.05, 0.7
+ns.NotifySettingsChanged()
 
 -- Target frame badge: for nameplates off or out of range.
 local tfp, tfs = p.targetFrame, ns.TargetFrame.state
-__check(p.badge.where == "auto" and tfp.attach == "frame" and tfp.enabled == nil, "badge where defaults to auto; target frame defaults")
+__check(p.badge.enabled and tfp.enabled == false and tfp.fallback == true and tfp.attach == "frame" and p.badge.where == nil, "visibility defaults: nameplate badge on, target frame as fallback")
 local blizzTarget = CreateFrame("Button", "TargetFrame", UIParent)
 __units.mob9 = { class = "elite", attackable = true }      -- no nameplate
 __target = "mob9"
@@ -287,7 +394,7 @@ __target = "nameplate2"
 __Fire("PLAYER_TARGET_CHANGED")
 __check(ns.TargetPlateBadgeShown() and not tfs.shown, "auto: target frame steps aside while the target's nameplate shows the badge")
 
--- "Show the badge on": each of the four choices, with the target's nameplate on screen.
+-- The Visibility tab's switches, with the target's nameplate on screen.
 local function PlateBadges(plate)
     local n = 0
     for _, c in ipairs(plate.__children) do
@@ -295,30 +402,30 @@ local function PlateBadges(plate)
     end
     return n
 end
-p.badge.where = "both"
-ns.NotifySettingsChanged()
-__check(tfs.shown and PlateBadges(rare) >= 1, "both: on the nameplate and the target frame")
-p.badge.where = "frame"
-ns.NotifySettingsChanged()
-__check(tfs.shown and PlateBadges(rare) == 0, "target frame only: no badge on any nameplate")
+local function Vis(badge, frame, fallback)
+    p.badge.enabled, tfp.enabled, tfp.fallback = badge, frame, fallback
+    ns.NotifySettingsChanged()
+end
+Vis(true, true, false)
+__check(tfs.shown and PlateBadges(rare) >= 1, "nameplate badge + target frame badge: both")
+Vis(false, true, false)
+__check(tfs.shown and PlateBadges(rare) == 0, "target frame badge only: no badge on any nameplate")
 SlashCmdList.ELITEMOBVISUALS("test")
-__check(PlateBadges(normal) == 0 and tfs.shown, "target frame only: test mode badges no nameplate either")
+__check(PlateBadges(normal) == 0 and tfs.shown, "target frame badge only: test mode badges no nameplate either")
 SlashCmdList.ELITEMOBVISUALS("test")
-p.badge.where = "nameplate"
-ns.NotifySettingsChanged()
-__check(not tfs.shown and PlateBadges(rare) >= 1, "nameplate only: never on the target frame")
+Vis(false, false, true)
+__check(tfs.shown and PlateBadges(rare) == 0, "nameplate badge off + fallback: on the target frame")
+Vis(true, false, false)
+__check(not tfs.shown and PlateBadges(rare) >= 1, "nameplate badge only: never on the target frame")
 __target = "mob9"                                           -- a target with no nameplate
 __Fire("PLAYER_TARGET_CHANGED")
-__check(not tfs.shown, "nameplate only: not on the target frame even with nameplates off")
+__check(not tfs.shown, "nameplate badge only: not on the target frame even with nameplates off")
 __target = "nameplate2"
 __Fire("PLAYER_TARGET_CHANGED")
-p.badge.where = "auto"
-p.badge.enabled = false
-ns.NotifySettingsChanged()
-__check(not tfs.shown and PlateBadges(rare) == 0, "badge off: nowhere")
-p.badge.enabled = true
-ns.NotifySettingsChanged()
-__check(not tfs.shown and PlateBadges(rare) >= 1, "badge back on (auto): on the nameplate, not the target frame")
+Vis(false, false, false)
+__check(not tfs.shown and PlateBadges(rare) == 0, "all off: nowhere")
+Vis(true, false, true)
+__check(not tfs.shown and PlateBadges(rare) >= 1, "defaults again: on the nameplate, not the target frame")
 
 -- Out of nameplate range: the plate goes, the target frame badge takes over.
 __Fire("NAME_PLATE_UNIT_REMOVED", "nameplate2")
@@ -374,19 +481,23 @@ EliteMobVisualsDB = { profiles = { Default = { badge = { size = 40 } } } }
 local db = ns.DB.New("EliteMobVisualsDB", ns.DEFAULTS)
 __check(db.profile.badge.size == 40 and db.profile.badge.style == "wing", "saved value kept, defaults filled in")
 
--- Settings saved before "Show the badge on" fold into it.
+-- Settings saved by earlier versions fold into the Visibility switches.
 local function Migrated(saved)
-    EliteMobVisualsDB = { profiles = { Default = { targetFrame = saved } } }
+    EliteMobVisualsDB = { profiles = { Default = saved } }
     local d = ns.DB.New("EliteMobVisualsDB", ns.DEFAULTS)
     ns.MigrateProfile(d.profile)
     return d.profile
 end
-local m1 = Migrated({ enabled = false })
-__check(m1.badge.where == "nameplate" and m1.targetFrame.enabled == nil, "old target frame off -> nameplate only")
-local m2 = Migrated({ mode = "always" })
-__check(m2.badge.where == "both" and m2.targetFrame.mode == nil, "old target frame always -> both")
-local m3 = Migrated({ mode = "fallback", size = 40 })
-__check(m3.badge.where == "auto" and m3.targetFrame.size == 40 and m3.targetFrame.mode == nil, "old fallback -> auto, other target frame settings kept")
+local m1 = Migrated({ badge = { where = "nameplate" } })
+__check(m1.badge.enabled and not m1.targetFrame.enabled and not m1.targetFrame.fallback and m1.badge.where == nil, "where=nameplate -> nameplate badge only")
+local m2 = Migrated({ badge = { where = "frame" } })
+__check(not m2.badge.enabled and m2.targetFrame.enabled, "where=frame -> target frame badge only")
+local m3 = Migrated({ badge = { where = "both" } })
+__check(m3.badge.enabled and m3.targetFrame.enabled, "where=both -> both")
+local m4 = Migrated({ targetFrame = { mode = "always", size = 40 } })
+__check(m4.targetFrame.enabled and m4.targetFrame.size == 40 and m4.targetFrame.mode == nil, "old mode=always -> target frame badge on, other settings kept")
+local m5 = Migrated({})
+__check(m5.badge.enabled and not m5.targetFrame.enabled and m5.targetFrame.fallback, "nothing saved -> the defaults")
 
 -- Slash help does not error.
 SlashCmdList.ELITEMOBVISUALS("help")

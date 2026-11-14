@@ -24,6 +24,11 @@ ns.DEFAULTS = {
         -- (the click box), which nameplate addons size in their own ways.
         anchor = "health",
 
+        -- Hide the nameplate addon's own elite/rare icon on mobs this addon
+        -- marks, so they don't show two (EllesmereUI's Rare/Elite indicator;
+        -- restored the moment a mob stops being marked).
+        hideNameplateIcons = true,
+
         -- Per classification: shown or not, its colour (tints the bundled
         -- styles, the glow and the label) and optional style overrides ("" =
         -- use the badge's or marker's own style).
@@ -35,16 +40,13 @@ ns.DEFAULTS = {
         },
 
         -- The badge beside the nameplate.
+        -- What shows is set in one place, the Visibility tab: badge.enabled,
+        -- badge.scope, overhead.enabled, overhead.scope, targetFrame.enabled
+        -- and targetFrame.fallback.
         badge = {
+            -- The badge on nameplates.
             enabled = true,
-            -- Where the badge shows:
-            --   "auto"      the nameplate, or the target frame when the target
-            --               has no nameplate badge (nameplates off, out of range)
-            --   "nameplate" the nameplate above the mob's head only
-            --   "frame"     the target unit frame only (Core/TargetFrame.lua)
-            --   "both"      the nameplate and the target frame
-            where = "auto",
-            -- On nameplates: "target" (your target's only) or "all" (every
+            -- Which nameplates: "target" (your target's only) or "all" (every
             -- marked plate).
             scope = "target",
             style = "wing",
@@ -63,11 +65,31 @@ ns.DEFAULTS = {
             glowAlpha = 0.6,
             -- "none", "pulse", "breathe", "bob" or "spin".
             anim = "none",
+            -- A plain rectangle behind the icon (the Background tab).
+            bg = {
+                enabled = false,
+                width = 36,
+                height = 36,
+                x = 0,
+                y = 0,
+                color = { r = 0.05, g = 0.04, b = 0.06 },
+                alpha = 0.7,
+                border = true,
+                -- true: the border takes the classification colour instead.
+                borderTint = false,
+                borderColor = { r = 0.95, g = 0.74, b = 0.25 },
+                borderSize = 1,
+            },
         },
 
-        -- How the badge looks on the target unit frame (Core/TargetFrame.lua).
-        -- Whether it shows there is badge.where.
+        -- The badge on the target unit frame (Core/TargetFrame.lua).
         targetFrame = {
+            -- Always on the target frame.
+            enabled = false,
+            -- On the target frame while the nameplate badge isn't showing on
+            -- the target: it is turned off, nameplates are off, or the target
+            -- is out of nameplate range.
+            fallback = true,
             -- "frame": the target frame in use (EllesmereUI, ElvUI, Shadowed
             -- Unit Frames or Blizzard's), else the free position.
             -- "screen": always the free position (drag it while the options
@@ -86,6 +108,21 @@ ns.DEFAULTS = {
             glow = false,
             glowAlpha = 0.6,
             anim = "none",
+            -- A plain rectangle behind the icon (the Background tab).
+            bg = {
+                enabled = false,
+                width = 42,
+                height = 42,
+                x = 0,
+                y = 0,
+                color = { r = 0.05, g = 0.04, b = 0.06 },
+                alpha = 0.7,
+                border = true,
+                -- true: the border takes the classification colour instead.
+                borderTint = false,
+                borderColor = { r = 0.95, g = 0.74, b = 0.25 },
+                borderSize = 1,
+            },
             free = { point = "CENTER", x = 0, y = 180 },
         },
 
@@ -107,6 +144,21 @@ ns.DEFAULTS = {
             label = false,
             labelSize = 11,
             labelPos = "above",
+            -- A plain rectangle behind the icon (the Background tab).
+            bg = {
+                enabled = false,
+                width = 30,
+                height = 30,
+                x = 0,
+                y = 0,
+                color = { r = 0.05, g = 0.04, b = 0.06 },
+                alpha = 0.7,
+                border = true,
+                -- true: the border takes the classification colour instead.
+                borderTint = false,
+                borderColor = { r = 0.95, g = 0.74, b = 0.25 },
+                borderSize = 1,
+            },
         },
     },
     global = {
@@ -115,33 +167,34 @@ ns.DEFAULTS = {
     },
 }
 
--- Where the badge may show (badge.where). "auto" allows both: the target
--- frame then shows it only while the target's nameplate doesn't.
-ns.WHERE_ORDER = { "auto", "nameplate", "frame", "both" }
-
 function ns.BadgeOnNameplates(profile)
-    local b = profile.badge
-    return b.enabled and b.where ~= "frame"
+    return profile.badge.enabled
 end
 
+-- Whether the target frame can show the badge at all: always, or as the
+-- fallback for when the nameplate badge isn't showing.
 function ns.BadgeOnTargetFrame(profile)
-    local b = profile.badge
-    return b.enabled and b.where ~= "nameplate"
+    local tf = profile.targetFrame
+    return tf.enabled or tf.fallback
 end
 
--- Saved settings from before badge.where: the target frame had its own on/off
--- switch and a "fallback"/"always" mode. Fold them into badge.where, once.
+-- Saved settings from earlier versions, folded into the Visibility settings
+-- once (neither key is a default any more, so a saved one is a real choice):
+--   badge.where     "nameplate" | "frame" | "both" ("auto" is today's default)
+--   targetFrame.mode "always" (from before badge.where)
 function ns.MigrateProfile(profile)
-    local tf = profile.targetFrame
-    if type(tf) ~= "table" then return end
-    if tf.enabled ~= nil or tf.mode ~= nil then
-        if profile.badge.where == "auto" then
-            if tf.enabled == false then
-                profile.badge.where = "nameplate"
-            elseif tf.mode == "always" then
-                profile.badge.where = "both"
-            end
-        end
-        tf.enabled, tf.mode = nil, nil
+    local b, tf = profile.badge, profile.targetFrame
+    if type(b) ~= "table" or type(tf) ~= "table" then return end
+    local where = rawget(b, "where")
+    if where == "nameplate" then
+        tf.enabled, tf.fallback = false, false
+    elseif where == "frame" then
+        b.enabled, tf.enabled = false, true
+    elseif where == "both" then
+        tf.enabled = true
     end
+    if rawget(tf, "mode") == "always" then
+        tf.enabled = true
+    end
+    b.where, tf.mode = nil, nil
 end

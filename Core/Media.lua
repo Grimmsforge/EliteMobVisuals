@@ -102,19 +102,40 @@ end
 
 function Media.Exists(key) return STYLES[key] ~= nil end
 
--- Each candidate atlas name in turn; the first the client has wins.
+-- Each candidate atlas name in turn; the first the client has wins. The spec
+-- keeps the atlas name: the art is drawn with Texture:SetAtlas (the game's own
+-- route, whatever file backs the atlas), at our size, with the coordinates
+-- here used only to mirror it.
 local function ResolveAtlas(names)
     if not (C_Texture and C_Texture.GetAtlasInfo) then return nil end
     for _, name in ipairs(names) do
         local info = C_Texture.GetAtlasInfo(name)
-        if info and info.file then
+        if info then
             local w, h = info.width or 1, info.height or 1
             return {
-                file = info.file,
+                atlas = name,
+                file = info.file or info.filename,
                 coords = { info.leftTexCoord or 0, info.rightTexCoord or 1, info.topTexCoord or 0, info.bottomTexCoord or 1 },
                 aspect = (h > 0) and (w / h) or 1,
             }
         end
+    end
+end
+
+-- Draw a spec into a texture: an atlas by name, or a file with its crop.
+-- mirrored flips it left to right. Shared by the visuals and the options'
+-- style icons.
+function Media.Apply(tex, spec, mirrored)
+    if spec.atlas and tex.SetAtlas then
+        tex:SetAtlas(spec.atlas, false)   -- false: our size, not the atlas's
+    else
+        tex:SetTexture(spec.file)
+    end
+    local l, r, t, b = spec.coords[1], spec.coords[2], spec.coords[3], spec.coords[4]
+    if mirrored then
+        tex:SetTexCoord(r, l, t, b)
+    elseif not spec.atlas then
+        tex:SetTexCoord(l, r, t, b)
     end
 end
 
