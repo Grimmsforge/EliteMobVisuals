@@ -208,12 +208,22 @@ local function Raise(f, anchor)
 end
 
 -- A style override for one classification, or the section's own style.
-local function StyleFor(override, fallback)
-    if override and override ~= "" and (override == "none" or Media.Exists(override)) then
-        return override
-    end
-    return fallback
+-- A visual's style for one classification: its own choice for that
+-- classification, then its own style. "" falls through; for the target frame
+-- visuals, on to their nameplate counterpart (parent). allowNone: markers may
+-- be text only ("none"). Returns nil when nothing valid is set.
+local function Valid(key, allowNone)
+    return type(key) == "string" and key ~= ""
+        and ((allowNone and key == "none") or Media.Exists(key))
 end
+
+local function StyleFor(opts, parent, class, allowNone)
+    local per = opts.classStyles and opts.classStyles[class]
+    if Valid(per, allowNone) then return per end
+    if Valid(opts.style, allowNone) then return opts.style end
+    if parent then return StyleFor(parent, nil, class, allowNone) end
+end
+Visuals.StyleFor = StyleFor
 
 -- ---------------------------------------------------------------------------
 -- Placement: what the visuals hang off (Core/Plates.lua finds the frames)
@@ -318,11 +328,12 @@ function Set:HideAll()
 end
 
 -- Draw the set for a unit of this classification. place: from Visuals.Place.
--- badgeOpts: the badge settings to draw with (default profile.badge; the
--- target frame passes its own, whose style "" means the nameplate badge's).
+-- badgeOpts, markerOpts: the settings to draw with (default profile.badge and
+-- profile.overhead; the target frame passes its own, whose style "" means the
+-- nameplate counterpart's).
 -- Skips all work when nothing changed since the last call (same settings,
 -- class, scope, host and anchors).
-function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
+function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts, markerOpts)
     local key = ns.settingsVersion .. class .. (showBadge and "B" or "") .. (showOverhead and "O" or "")
         .. tostring(place.host) .. tostring(place.badge) .. tostring(place.over)
     if key == self.key then return end
@@ -337,8 +348,8 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
     -- Badge, and its mirrored pair.
     local b = badgeOpts or profile.badge
     if showBadge then
-        local baseStyle = (b.style and b.style ~= "") and b.style or profile.badge.style
-        local spec = Media.Resolve(StyleFor(cdb.badgeStyle, baseStyle), class)
+        local parent = (b ~= profile.badge) and profile.badge or nil
+        local spec = Media.Resolve(StyleFor(b, parent, class, false) or "wing", class)
         local spot = ns.PLACEMENTS[b.point] or ns.PLACEMENTS.LEFT
         local point = ns.PLACEMENTS[b.point] and b.point or "LEFT"
         -- Art that points right faces outward on the left side; Flip inverts.
@@ -378,12 +389,13 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts)
     end
 
     -- Overhead marker, with its optional label.
-    local o = profile.overhead
+    local o = markerOpts or profile.overhead
     if showOverhead then
         local e = self:Element("overhead", true)
         local over = place.over
         Attach(e, place, over)
-        local styleKey = StyleFor(cdb.overheadStyle, o.style)
+        local parent = (o ~= profile.overhead) and profile.overhead or nil
+        local styleKey = StyleFor(o, parent, class, true) or "chevron"
         if styleKey == "none" then
             -- Text only: an empty anchor point for the label.
             e:SetSize(1, 1)

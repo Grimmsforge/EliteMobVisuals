@@ -12,46 +12,52 @@ works alongside any nameplate addon, with no libraries and no dependencies.
 
 ## Features
 
-- **Target badge.** A badge beside your target's nameplate when it is an elite,
-  rare, rare elite or boss. You can show it on every marked nameplate instead.
-- **Visibility in one place.** The Visibility tab has a box to tick for each
+- **Four visuals, each set up on its own.**
+
+  | | Nameplate | Target frame |
+  | --- | --- | --- |
+  | **Badge** | Beside the nameplate | Beside your target's unit frame |
+  | **Marker** | Above the nameplate (the mob's head), with an optional "Elite" / "Rare" label | Above your target's unit frame |
+
+  The target frame can be EllesmereUI's, Blizzard's standard `TargetFrame`,
+  ElvUI's or Shadowed Unit Frames', whichever is in use. With no target frame,
+  or if you choose the free position, the target frame visuals sit wherever
+  you drag them.
+- **Visibility in one place.** The Visibility page has a box to tick for each
   visual:
-  - **Nameplate badge**: on your target's nameplate, or every marked one.
-  - **Overhead marker**: on every marked mob, your target only, or all but
-    your target.
-  - **Target frame badge**: always on your target's unit frame.
-  - **If the nameplate badge is off, use the target frame** (on by default):
-    the target frame steps in whenever the nameplate badge isn't showing on
-    your target. That covers the nameplate badge being turned off,
-    nameplates being off, and the target being out of nameplate range.
+  - **Nameplate badge and marker:** each with which nameplates it shows on
+    (your target, every marked mob, or all but your target).
+  - **Target frame badge and marker:** each always, or with *If the
+    nameplate badge (marker) is off, use the target frame*, which is on by
+    default. With that, the target frame steps in whenever its nameplate
+    counterpart isn't showing on your target: it is turned off, nameplates
+    are off, or the target is out of range.
 
   The filters (only mobs you can attack, only in combat, hide on dead mobs)
-  are there too. The other tabs only set how each visual looks. The target
-  frame can be EllesmereUI's, Blizzard's standard `TargetFrame`, ElvUI's or
-  Shadowed Unit Frames', whichever is in use. With no target frame, or if you
-  choose the free position, the badge sits wherever you drag it.
-- **Overhead marker.** A marker above elite and rare mobs' nameplates, with an
-  optional "Elite" / "Rare" text label.
+  are there too. Each visual's page only sets how it looks.
 - **13 styles.** Eight bundled styles (Gilded Wing, Heraldic Crest, Faceted
   Star, Skull, Cut Gem, Crown, Chevron, Arrow), tinted to each classification's
   colour. Five use the game's own art: the nameplate classification icon, the
   target-frame dragon, the classic vanilla dragon, the minimap rare vignette
   and the raid target icons.
-- **Backgrounds.** Each visual (the nameplate badge, the target frame badge
-  and the overhead marker) can have a plain rectangle behind its art. You set
+- **Backgrounds.** Each visual can have a plain rectangle behind its art. You set
   its width, height, offset, colour and opacity, plus an optional border
   with its own colour and thickness. The border can take the classification
   colour instead.
 - **Per-classification settings.** Each classification has its own on/off
-  switch and colour, and can have its own badge and marker style (a gold wing
-  for elites and a star for rares, say).
+  switch and colour. Each visual can give each classification its own style,
+  a gold wing for elites and a star for rares, say. The target frame visuals
+  follow their nameplate counterpart unless set.
 - **Placement.** Size, any side or corner of the plate, offsets, a mirrored
   pair on both sides, flip, opacity, glow, and pulse, breathe, bob or spin
   animations.
 - **Filters.** Only mobs you can attack, only in combat, and hidden on
   dead mobs.
-- **Live preview.** The options window draws a preview with the same code as
-  the real visuals.
+- **Options window.** A sidebar lists General, Visibility, Nameplate (Badge,
+  Marker), Target frame (Badge, Marker) and Classifications. The live preview,
+  drawn with the same code as the real visuals, shows what the selected page
+  edits. Visual pages show that visual alone, even while it's off;
+  General, Visibility and Classifications show everything by the rules.
 - **Test mode.** `/emv test` marks every nameplate, so you can position the
   visuals on real plates without hunting for an elite.
 - **Minimap button.** Left-click opens the options, right-click hides the
@@ -177,13 +183,13 @@ Core/
   Media.lua            the style registry; resolves a style and classification to a texture
   Classify.lua         which units are marked, and the unit filters
   Plates.lua           nameplate addon adapters: where the visuals attach (EllesmereUI, ...)
-  Visuals.lua          the badge, its pair and the overhead marker on one plate
-  TargetFrame.lua      the badge on the target unit frame (EllesmereUI, Blizzard, ...)
+  Visuals.lua          a badge, its pair and a marker on one plate or frame
+  TargetFrame.lua      the badge and marker on the target unit frame (EllesmereUI, Blizzard, ...)
   MinimapButton.lua    the minimap launcher, a LibDBIcon look-alike (from Epithet)
   EliteMobVisuals.lua  events, nameplate tracking, slash commands
 Locales/enUS.lua       strings (keys are the English text)
 UI/Widgets.lua         flat option controls, no Blizzard templates
-UI/Options.lua         the options window, live preview and the game Settings page
+UI/Options.lua         the options window (sidebar, pages, live preview) and the game Settings page
 media/                 shipped TGA textures and logo
 tools/art/             SVG sources and the render script (dev only)
 tools/tests/           fengari tests (dev only)

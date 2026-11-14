@@ -112,7 +112,8 @@ end
 function TF.RefreshHandle()
     if not ns.db then return end
     local t = ns.db.profile.targetFrame
-    local unlocked = ns.Options.IsShown() and ns.BadgeOnTargetFrame(ns.db.profile)
+    local p = ns.db.profile
+    local unlocked = ns.Options.IsShown() and (ns.BadgeOnTargetFrame(p) or ns.MarkerOnTargetFrame(p))
         and (t.attach == "screen" or not TF.FindFrame())
     local h = PlaceHandle()
     h:EnableMouse(unlocked and true or false)
@@ -121,7 +122,7 @@ function TF.RefreshHandle()
 end
 
 -- ---------------------------------------------------------------------------
--- The badge
+-- The badge (beside the frame) and the marker (above it)
 -- ---------------------------------------------------------------------------
 
 local holder = CreateFrame("Frame", nil, UIParent)
@@ -130,7 +131,7 @@ holder:SetPoint("CENTER")
 local set = Visuals.Create(holder)
 
 -- What showed last, for /emv debug.
-TF.state = { shown = false, anchor = "-" }
+TF.state = { shown = false, badge = false, marker = false, anchor = "-" }
 
 function TF.Update()
     if not ns.db then return end
@@ -138,16 +139,17 @@ function TF.Update()
     local t = p.targetFrame
     TF.RefreshHandle()
 
-    local class = p.enabled and ns.BadgeOnTargetFrame(p) and Classify.Get("target")
+    local tm = p.targetMarker
+    local class = p.enabled and (ns.BadgeOnTargetFrame(p) or ns.MarkerOnTargetFrame(p)) and Classify.Get("target")
     local cdb = class and p.classes[class]
-    local show = cdb and cdb.show and Classify.Passes("target", p)
-    -- "auto": the target frame only stands in while the nameplate can't.
-    if show and not t.enabled and ns.TargetPlateBadgeShown() then
-        show = false
-    end
-    if not show then
+    local marked = cdb and cdb.show and Classify.Passes("target", p)
+    -- Each shows always when ticked, else as the fallback: only while its
+    -- nameplate counterpart isn't showing on the target.
+    local showBadge = marked and (t.enabled or (t.fallback and not ns.TargetPlateBadgeShown())) and true or false
+    local showMarker = marked and (tm.enabled or (tm.fallback and not ns.TargetPlateMarkerShown())) and true or false
+    if not (showBadge or showMarker) then
         set:HideAll()
-        TF.state.shown, TF.state.anchor = false, "-"
+        TF.state.shown, TF.state.badge, TF.state.marker, TF.state.anchor = false, false, false, "-"
         return
     end
 
@@ -172,8 +174,8 @@ function TF.Update()
     place.host, place.badge, place.over = holder, anchor, anchor
     place.strata = type(strata) == "string" and strata or "MEDIUM"
     place.level = math.min((type(level) == "number" and level or 1) + 20, 9000)
-    set:Update(class, place, true, false, p, t)
-    TF.state.shown, TF.state.anchor = true, name
+    set:Update(class, place, showBadge, showMarker, p, t, tm)
+    TF.state.shown, TF.state.badge, TF.state.marker, TF.state.anchor = true, showBadge, showMarker, name
 end
 
 -- The target's death (hide on dead mobs) arrives as a health update.

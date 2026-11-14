@@ -397,3 +397,62 @@ function W.Color(parent, get, set, tip, title)
     b:Refresh()
     return b
 end
+
+-- ---------------------------------------------------------------------------
+-- Scrolling page: content taller than the window scrolls with the mouse
+-- wheel or the thin bar at the right. Returns the scroll frame and the child
+-- to build into; call scroll:SetContentHeight(h) once built.
+-- ---------------------------------------------------------------------------
+function W.ScrollPage(parent)
+    local scroll = CreateFrame("ScrollFrame", nil, parent)
+    scroll:SetPoint("TOPLEFT", 1, -1)
+    scroll:SetPoint("BOTTOMRIGHT", -14, 1)
+    local child = CreateFrame("Frame", nil, scroll)
+    child:SetSize(1, 1)
+    scroll:SetScrollChild(child)
+
+    local bar = CreateFrame("Slider", nil, parent)
+    bar:SetOrientation("VERTICAL")
+    bar:SetPoint("TOPRIGHT", -4, -4)
+    bar:SetPoint("BOTTOMRIGHT", -4, 4)
+    bar:SetWidth(6)
+    local track = bar:CreateTexture(nil, "BACKGROUND")
+    track:SetAllPoints()
+    Fill(track, C.control)
+    local thumb = bar:CreateTexture(nil, "OVERLAY")
+    thumb:SetSize(6, 36)
+    Fill(thumb, C.gold)
+    bar:SetThumbTexture(thumb)
+    bar:SetMinMaxValues(0, 0)
+    bar:SetValueStep(1)
+    bar:SetValue(0)
+    bar:Hide()
+    bar:SetScript("OnValueChanged", function(_, v) scroll:SetVerticalScroll(v) end)
+
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(_, delta)
+        local lo, hi = bar:GetMinMaxValues()
+        bar:SetValue(math.max(lo or 0, math.min(hi or 0, bar:GetValue() - delta * 40)))
+    end)
+
+    local function Update()
+        local h = scroll.contentHeight or 0
+        local view = scroll:GetHeight() or 0
+        local max = math.max(0, h - view)
+        bar:SetMinMaxValues(0, max)
+        if bar:GetValue() > max then bar:SetValue(max) end
+        bar:SetShown(max > 0)
+    end
+    function scroll:SetContentHeight(h)
+        self.contentHeight = h
+        child:SetHeight(h)
+        Update()
+    end
+    scroll:SetScript("OnSizeChanged", function(self, w)
+        child:SetWidth(w or 1)
+        Update()
+    end)
+    scroll:SetScript("OnShow", Update)
+    scroll.bar = bar
+    return scroll, child
+end

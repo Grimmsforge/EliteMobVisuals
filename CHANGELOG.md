@@ -8,17 +8,22 @@ First version, for WoW Forever (Interface 16001).
   9 positions, mirrored pairs, size, offsets, opacity, tint, glow and
   animations.
 - Overhead marker above marked mobs, with an optional text label.
-- Visibility tab: tick the nameplate badge, the overhead marker and the
-  target frame badge (EllesmereUI's or Blizzard's, also ElvUI and Shadowed
-  Unit Frames), plus "If the nameplate badge is off, use the target frame",
-  which also covers nameplates off and out of range. The filters are there
-  too, and the other tabs only set looks. The target frame badge has its own
-  size, position and style, and a free, draggable position.
+- Four visuals, each set up on its own: a badge and a marker on the
+  nameplate, and a badge and a marker on the target frame (EllesmereUI's or
+  Blizzard's, also ElvUI and Shadowed Unit Frames, or a free, draggable
+  position).
+- Visibility page: tick each visual, choose which nameplates the nameplate
+  ones show on, and let each target frame one step in when its nameplate
+  counterpart isn't showing (nameplates off, out of range, or turned off).
+- Style per classification for each visual; the target frame visuals follow
+  their nameplate counterpart unless set.
+- Options window with a sidebar, and a preview of what the selected page
+  edits.
 - Animations move the art only; a background stays still behind it.
 - Test mode shows the badge on every nameplate, whatever "Show on" says, and
   says when there is nothing it can show. `/emv debug` prints what the addon
   sees on each plate and on the target frame.
-- Per-classification on/off, colour and style overrides.
+- Per-classification on/off and colour.
 - Backgrounds: a rectangle behind each visual's art, with its own width,
   height, offset, colour, opacity and optional border, which can take the
   classification colour.

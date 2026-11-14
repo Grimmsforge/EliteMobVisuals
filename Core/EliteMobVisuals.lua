@@ -77,6 +77,13 @@ function ns.TargetPlateBadgeShown()
     return e ~= nil and e:IsShown() and true or false
 end
 
+-- The same for the marker above the target's nameplate.
+function ns.TargetPlateMarkerShown()
+    local s = targetPlate and sets[targetPlate]
+    local e = s and s.overhead
+    return e ~= nil and e:IsShown() and true or false
+end
+
 local function RefreshTarget()
     targetPlate = GetNamePlateForUnit and GetNamePlateForUnit("target") or nil
 end
@@ -123,8 +130,9 @@ function ns.SetTestMode(on, class, quiet)
     local p = ns.db.profile
     if not p.enabled then
         ns.Print(L["The addon is turned off, so nothing shows. Type /emv on."])
-    elseif not p.badge.enabled and not p.overhead.enabled and not ns.BadgeOnTargetFrame(p) then
-        ns.Print(L["The nameplate badge, overhead marker and target frame badge are all turned off (Visibility tab), so there is nothing to show."])
+    elseif not p.badge.enabled and not p.overhead.enabled
+        and not ns.BadgeOnTargetFrame(p) and not ns.MarkerOnTargetFrame(p) then
+        ns.Print(L["Every visual is turned off (Visibility page), so there is nothing to show."])
     elseif not p.classes[Classify.testClass].show then
         ns.Print(string.format(L["%s is turned off in the Classifications tab, so nothing shows."],
             ns.CLASS_LABELS[Classify.testClass]))
@@ -350,8 +358,12 @@ function ns.Debug()
         CountPlates(), clientPlates, targetPlate and "yes" or "no", tostring(ns.Plates.EllesmereLoaded())))
     local t = p.targetFrame
     local _, frameName = ns.TargetFrame.FindFrame()
-    Line(string.format("target frame on=%s fallback=%s attach=%s found=%s shown=%s at=%s target=%s marked=%s",
-        tostring(t.enabled), tostring(t.fallback), t.attach, tostring(frameName), tostring(ns.TargetFrame.state.shown),
+    local tm, st = p.targetMarker, ns.TargetFrame.state
+    Line(string.format("target frame badge on=%s fallback=%s shown=%s  marker on=%s fallback=%s shown=%s",
+        tostring(t.enabled), tostring(t.fallback), tostring(st.badge),
+        tostring(tm.enabled), tostring(tm.fallback), tostring(st.marker)))
+    Line(string.format("target frame attach=%s found=%s shown=%s at=%s target=%s marked=%s",
+        t.attach, tostring(frameName), tostring(ns.TargetFrame.state.shown),
         tostring(ns.TargetFrame.state.anchor), SafeCall(UnitName, "target"), tostring(Classify.Get("target"))))
 
     local listed = 0

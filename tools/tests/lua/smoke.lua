@@ -116,7 +116,7 @@ __check(__ShownElements(elite) >= 1, "badge still shown after cycling placements
 -- Overhead with a text-only style and label.
 p.overhead.enabled = true
 p.overhead.style = "none"
-p.classes.elite.overheadStyle = "star"
+p.overhead.classStyles.elite = "star"
 p.overhead.label = true
 ns.NotifySettingsChanged()
 __check(__ShownElements(elite) >= 2, "overhead with per-class style and label")
@@ -157,16 +157,18 @@ __check(__ShownElements(normal) == 0, "test mode off: the normal mob is unmarked
 -- Turning test mode on with nothing to show says so.
 p.badge.enabled = false
 p.targetFrame.fallback = false
+p.targetMarker.fallback = false
 chatBefore = #__chat
 SlashCmdList.ELITEMOBVISUALS("test")
 local warned = false
 for i = chatBefore + 1, #__chat do
-    if __chat[i]:find("all turned off") then warned = true end
+    if __chat[i]:find("Every visual is turned off") then warned = true end
 end
-__check(warned, "test mode explains when the badge, marker and target frame badge are all off")
+__check(warned, "test mode explains when every visual is off")
 SlashCmdList.ELITEMOBVISUALS("test")
 p.badge.enabled = true
 p.targetFrame.fallback = true
+p.targetMarker.fallback = true
 p.badge.scope = "all"
 p.overhead.enabled = true
 ns.NotifySettingsChanged()
@@ -218,6 +220,26 @@ __check(not onPlate and not onFrame, "preview nameplate only, nameplates off: no
 onPlate, onFrame = Preview(true, true, false, false, true)
 __check(not onFrame, "preview not your target: no target frame badge")
 Preview(true, false, true, true, true)
+
+-- Each visual's page previews that visual alone, even while it's off.
+local function Focus(page)
+    ns.Options.SelectPage(page)
+    return On(plateSet, "badge"), On(plateSet, "overhead"), On(frameSet, "badge"), On(frameSet, "overhead")
+end
+local pb, pm, fb, fm = Focus("npBadge")
+__check(pb and not pm and not fb and not fm, "Nameplate > Badge page previews the nameplate badge only")
+pb, pm, fb, fm = Focus("npMarker")
+__check(not pb and pm and not fb and not fm, "Nameplate > Marker page previews the nameplate marker only")
+pb, pm, fb, fm = Focus("tfBadge")
+__check(not pb and not pm and fb and not fm, "Target frame > Badge page previews the target frame badge only")
+p.targetMarker.fallback = false                         -- off on the Visibility page
+ns.NotifySettingsChanged()
+pb, pm, fb, fm = Focus("tfMarker")
+__check(not pb and not pm and not fb and fm, "Target frame > Marker page previews its marker, even while it's off")
+p.targetMarker.fallback = true
+ns.NotifySettingsChanged()
+pb, pm, fb, fm = Focus("visible")
+__check(pb and fm == false and not fb, "Visibility page previews everything by the rules again")
 
 for _, class in ipairs(ns.CLASSES) do
     p.classes[class].show = false
@@ -360,7 +382,7 @@ local blizzTarget = CreateFrame("Button", "TargetFrame", UIParent)
 __units.mob9 = { class = "elite", attackable = true }      -- no nameplate
 __target = "mob9"
 __Fire("PLAYER_TARGET_CHANGED")
-__check(tfs.shown and tfs.anchor == "TargetFrame", "nameplates off: badge on Blizzard's target frame")
+__check(tfs.badge and tfs.anchor == "TargetFrame", "nameplates off: badge on Blizzard's target frame")
 local tfBadge = nil
 for _, c in ipairs(UIParent.__children) do
     for _, e in ipairs(c.__children or {}) do
@@ -381,7 +403,7 @@ __Fire("PLAYER_TARGET_CHANGED")
 __check(tfs.anchor == "EllesmereUIUnitFrames_Target", "EllesmereUI target frame used, even before it shows")
 euiTarget:Show()
 __RunTimers()
-__check(tfs.shown and tfs.anchor == "EllesmereUIUnitFrames_Target", "EllesmereUI target frame used once shown")
+__check(tfs.badge and tfs.anchor == "EllesmereUIUnitFrames_Target", "EllesmereUI target frame used once shown")
 
 -- EllesmereUI set to Blizzard's target frame: no frame of its own.
 _G.EllesmereUIUnitFrames_Target = nil
@@ -392,7 +414,7 @@ __check(tfs.anchor == "TargetFrame", "EllesmereUI on Blizzard's frame: Blizzard'
 -- Target with a nameplate that shows the badge: no doubling up by default.
 __target = "nameplate2"
 __Fire("PLAYER_TARGET_CHANGED")
-__check(ns.TargetPlateBadgeShown() and not tfs.shown, "auto: target frame steps aside while the target's nameplate shows the badge")
+__check(ns.TargetPlateBadgeShown() and not tfs.badge, "auto: target frame steps aside while the target's nameplate shows the badge")
 
 -- The Visibility tab's switches, with the target's nameplate on screen.
 local function PlateBadges(plate)
@@ -407,37 +429,77 @@ local function Vis(badge, frame, fallback)
     ns.NotifySettingsChanged()
 end
 Vis(true, true, false)
-__check(tfs.shown and PlateBadges(rare) >= 1, "nameplate badge + target frame badge: both")
+__check(tfs.badge and PlateBadges(rare) >= 1, "nameplate badge + target frame badge: both")
 Vis(false, true, false)
-__check(tfs.shown and PlateBadges(rare) == 0, "target frame badge only: no badge on any nameplate")
+__check(tfs.badge and PlateBadges(rare) == 0, "target frame badge only: no badge on any nameplate")
 SlashCmdList.ELITEMOBVISUALS("test")
-__check(PlateBadges(normal) == 0 and tfs.shown, "target frame badge only: test mode badges no nameplate either")
+__check(PlateBadges(normal) == 0 and tfs.badge, "target frame badge only: test mode badges no nameplate either")
 SlashCmdList.ELITEMOBVISUALS("test")
 Vis(false, false, true)
-__check(tfs.shown and PlateBadges(rare) == 0, "nameplate badge off + fallback: on the target frame")
+__check(tfs.badge and PlateBadges(rare) == 0, "nameplate badge off + fallback: on the target frame")
 Vis(true, false, false)
-__check(not tfs.shown and PlateBadges(rare) >= 1, "nameplate badge only: never on the target frame")
+__check(not tfs.badge and PlateBadges(rare) >= 1, "nameplate badge only: never on the target frame")
 __target = "mob9"                                           -- a target with no nameplate
 __Fire("PLAYER_TARGET_CHANGED")
-__check(not tfs.shown, "nameplate badge only: not on the target frame even with nameplates off")
+__check(not tfs.badge, "nameplate badge only: not on the target frame even with nameplates off")
 __target = "nameplate2"
 __Fire("PLAYER_TARGET_CHANGED")
 Vis(false, false, false)
-__check(not tfs.shown and PlateBadges(rare) == 0, "all off: nowhere")
+__check(not tfs.badge and PlateBadges(rare) == 0, "all off: nowhere")
 Vis(true, false, true)
-__check(not tfs.shown and PlateBadges(rare) >= 1, "defaults again: on the nameplate, not the target frame")
+__check(not tfs.badge and PlateBadges(rare) >= 1, "defaults again: on the nameplate, not the target frame")
+
+-- The target frame marker, set up on its own: steps in for the nameplate
+-- marker, or shows alongside it when ticked.
+local tmk = p.targetMarker
+__check(not tmk.enabled and tmk.fallback, "target frame marker defaults: fallback only")
+p.overhead.enabled, p.overhead.scope = true, "all"
+ns.NotifySettingsChanged()
+__check(ns.TargetPlateMarkerShown() and not tfs.marker, "nameplate marker showing: target frame marker steps aside")
+p.overhead.enabled = false
+ns.NotifySettingsChanged()
+__check(tfs.marker, "nameplate marker off: target frame marker steps in")
+p.overhead.enabled, tmk.enabled = true, true
+ns.NotifySettingsChanged()
+__check(tfs.marker and ns.TargetPlateMarkerShown(), "target frame marker ticked: shown alongside the nameplate marker")
+tmk.enabled, tmk.fallback = false, false
+ns.NotifySettingsChanged()
+__check(not tfs.marker, "target frame marker off: never")
+tmk.fallback = true
+ns.NotifySettingsChanged()
+
+-- Style per classification, per visual. The target frame visuals fall back
+-- to their nameplate counterpart (per classification first).
+local StyleFor = ns.Visuals.StyleFor
+p.badge.classStyles.rare = "star"
+ns.NotifySettingsChanged()
+local rb = Badge(rare)
+__check(rb and tostring(rb.tex.__texture):find("badge%-star"), "nameplate badge: rare uses its own style")
+__check(StyleFor(p.badge, nil, "elite", false) == "wing", "nameplate badge: elite keeps the badge style")
+__check(StyleFor(p.targetFrame, p.badge, "rare", false) == "star", "target frame badge inherits the nameplate badge's rare style")
+p.targetFrame.classStyles.rare = "skull"
+__check(StyleFor(p.targetFrame, p.badge, "rare", false) == "skull", "target frame badge: its own rare style wins")
+p.targetFrame.style = "crown"
+p.targetFrame.classStyles.rare = ""
+__check(StyleFor(p.targetFrame, p.badge, "rare", false) == "crown", "target frame badge: its own style wins over the nameplate's per-class one")
+p.overhead.classStyles.elite = "none"
+__check(StyleFor(p.targetMarker, p.overhead, "elite", true) == "none", "target frame marker inherits text only from the nameplate marker")
+__check(StyleFor(p.badge, nil, "rare", false) == "star" and StyleFor({ style = "none", classStyles = {} }, nil, "rare", false) == nil,
+    "badges can't be text only")
+p.badge.classStyles.rare, p.targetFrame.style, p.overhead.classStyles.elite = "", "", ""
+ns.NotifySettingsChanged()
 
 -- Out of nameplate range: the plate goes, the target frame badge takes over.
 __Fire("NAME_PLATE_UNIT_REMOVED", "nameplate2")
-__check(tfs.shown, "target's nameplate removed: target frame badge shows")
+__check(tfs.badge, "target's nameplate removed: target frame badge shows")
 __Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
-__check(not tfs.shown, "target's nameplate back: target frame badge steps aside")
+__check(not tfs.badge, "target's nameplate back: target frame badge steps aside")
 
 -- Free position, and its drag box while the options window is open.
 __target = "mob9"
 tfp.attach = "screen"
 __Fire("PLAYER_TARGET_CHANGED")
-__check(tfs.shown and tfs.anchor == "free position", "free position")
+__check(tfs.badge and tfs.anchor == "free position", "free position")
 SlashCmdList.ELITEMOBVISUALS("")
 __check(EliteMobVisualsTargetAnchor.bg:IsShown(), "drag box shows while the options are open")
 SlashCmdList.ELITEMOBVISUALS("")
@@ -447,20 +509,20 @@ tfp.attach = "frame"
 -- No target frame at all (EllesmereUI's set to hidden): the free position.
 blizzTarget:SetParent(parked)
 ns.NotifySettingsChanged()
-__check(tfs.shown and tfs.anchor == "free position", "no target frame in use: falls back to the free position")
+__check(tfs.badge and tfs.anchor == "free position", "no target frame in use: falls back to the free position")
 blizzTarget:SetParent(UIParent)
 
 -- Friendly or unmarked targets, and no target.
 __units.mob10 = { class = "normal", attackable = true }
 __target = "mob10"
 __Fire("PLAYER_TARGET_CHANGED")
-__check(not tfs.shown, "normal target: nothing on the target frame")
+__check(not tfs.badge, "normal target: nothing on the target frame")
 SlashCmdList.ELITEMOBVISUALS("test")
-__check(tfs.shown, "test mode marks the target on the target frame too")
+__check(tfs.badge, "test mode marks the target on the target frame too")
 SlashCmdList.ELITEMOBVISUALS("test")
 __target = nil
 __Fire("PLAYER_TARGET_CHANGED")
-__check(not tfs.shown, "no target: nothing on the target frame")
+__check(not tfs.badge, "no target: nothing on the target frame")
 
 -- Plate removed: its visuals hide.
 __Fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
@@ -496,6 +558,10 @@ local m3 = Migrated({ badge = { where = "both" } })
 __check(m3.badge.enabled and m3.targetFrame.enabled, "where=both -> both")
 local m4 = Migrated({ targetFrame = { mode = "always", size = 40 } })
 __check(m4.targetFrame.enabled and m4.targetFrame.size == 40 and m4.targetFrame.mode == nil, "old mode=always -> target frame badge on, other settings kept")
+local m6 = Migrated({ classes = { rare = { badgeStyle = "star", overheadStyle = "none" } } })
+__check(m6.badge.classStyles.rare == "star" and m6.overhead.classStyles.rare == "none"
+    and m6.classes.rare.badgeStyle == nil and m6.classes.rare.overheadStyle == nil,
+    "old per-classification styles move to the nameplate visuals' own")
 local m5 = Migrated({})
 __check(m5.badge.enabled and not m5.targetFrame.enabled and m5.targetFrame.fallback, "nothing saved -> the defaults")
 
