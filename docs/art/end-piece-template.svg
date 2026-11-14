@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Elite Mob Visuals: end piece template. 512 x 512 canvas.
+       Draw the piece for the LEFT end of a horizontal bar. Delete or hide the
+       guide layer before exporting. All guide positions are in pixels. -->
+  <defs>
+    <pattern id="checker" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#2a2a2e"/>
+      <rect width="16" height="16" fill="#323238"/>
+      <rect x="16" y="16" width="16" height="16" fill="#323238"/>
+    </pattern>
+  </defs>
+  <g id="guides" font-family="Arial, Helvetica, sans-serif" font-size="13">
+    <rect width="512" height="512" fill="url(#checker)"/>
+    <!-- Safe area: keep all art inside (16 px margin). -->
+    <rect x="16" y="16" width="480" height="480" fill="none" stroke="#6a6a72" stroke-dasharray="6 6"/>
+    <text x="22" y="34" fill="#9a9aa4">safe area (16 px margin)</text>
+    <!-- The bar, continuing off to the right. Reference height 128 px. -->
+    <rect x="384" y="192" width="128" height="128" fill="#7a1a14"/>
+    <rect x="384" y="192" width="92" height="128" fill="#c9221a"/>
+    <text x="392" y="262" fill="#ffffff">the bar</text>
+    <!-- Bar top and bottom edges. -->
+    <line x1="0" y1="192" x2="512" y2="192" stroke="#4fc3f7" stroke-width="2"/>
+    <line x1="0" y1="320" x2="512" y2="320" stroke="#4fc3f7" stroke-width="2"/>
+    <text x="22" y="186" fill="#4fc3f7">bar top edge</text>
+    <text x="22" y="338" fill="#4fc3f7">bar bottom edge</text>
+    <!-- Mirror line: the art must be symmetrical about it, top to bottom. -->
+    <line x1="0" y1="256" x2="512" y2="256" stroke="#ffd54f" stroke-width="2" stroke-dasharray="10 6"/>
+    <text x="22" y="250" fill="#ffd54f">mirror line (top half = bottom half, flipped)</text>
+    <!-- Attach line: the bar's left end. -->
+    <line x1="384" y1="0" x2="384" y2="512" stroke="#81c784" stroke-width="2"/>
+    <text x="300" y="34" fill="#81c784">bar end (attach line)</text>
+    <!-- How far the art may cover the bar. -->
+    <line x1="416" y1="160" x2="416" y2="352" stroke="#ef5350" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="420" y="152" fill="#ef5350">max overlap</text>
+    <text x="420" y="168" fill="#ef5350">(32 px)</text>
+    <!-- Where the art goes. -->
+    <text x="120" y="420" fill="#d0d0d8" font-size="15">draw the end piece here:</text>
+    <text x="120" y="440" fill="#d0d0d8" font-size="15">left of the attach line, outward</text>
+  </g>
+  <g id="art">
+    <!-- Your art goes in this group. -->
+  </g>
+</svg>
