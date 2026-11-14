@@ -1,0 +1,18 @@
+{
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.workspace.ignoreDir": ["tools", "dist", ".vscode"],
+    "Lua.diagnostics.disable": ["undefined-field", "inject-field"],
+    "Lua.diagnostics.globals": [
+        "CreateFrame", "UIParent", "WorldFrame", "DEFAULT_CHAT_FRAME", "GameTooltip",
+        "C_AddOns", "C_NamePlate", "C_Texture", "GetAddOnMetadata", "GetFileIDFromPath",
+        "UnitName", "GetRealmName", "UnitExists", "UnitClassification", "UnitIsPlayer",
+        "UnitCanAttack", "UnitIsDead", "UnitAffectingCombat", "UnitIsUnit", "issecretvalue",
+        "STANDARD_TEXT_FONT", "ColorPickerFrame", "Settings", "SettingsPanel", "HideUIPanel",
+        "StaticPopupDialogs", "StaticPopup_Show", "UISpecialFrames", "SlashCmdList",
+        "SLASH_ELITEMOBVISUALS1", "SLASH_ELITEMOBVISUALS2", "CreateColor", "YES", "NO",
+        "tinsert", "wipe", "EliteMobVisualsDB",
+        "EliteMobVisuals_OnAddonCompartmentClick", "EliteMobVisuals_OnAddonCompartmentEnter",
+        "EliteMobVisuals_OnAddonCompartmentLeave", "Minimap", "GetCursorPosition", "IsLoggedIn", "GetMinimapShape", "LibStub"
+    ],
+    "cSpell.words": ["rareelite", "worldboss", "nontarget", "fengari", "customisable"]
+}

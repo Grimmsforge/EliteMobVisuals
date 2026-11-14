@@ -1,0 +1,11 @@
+package-as: EliteMobVisuals
+
+ignore:
+  - scripts
+  - dist
+  - docs
+  - tools
+  - .gitignore
+  - .pkgmeta
+  - .vscode
+  - "*.md"

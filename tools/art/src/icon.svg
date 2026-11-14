@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Compact icon: the logo's disc and star without the wings, for the
+       minimap button, the addon compartment and the addon list.
+
+       Padded on purpose: everything sits inside a circle of radius 96 (75% of
+       the half-width). Minimap button bags stretch a collected icon edge to
+       edge, crop 5% off each side and draw their own ring over the rim
+       (EllesmereUI Minimap: SetTexCoord 0.05-0.95 plus a ring overlay), and
+       the stock LibDBIcon border covers the rim too. Art in the outer quarter
+       would be cut off. -->
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1a6"/>
+      <stop offset="0.5" stop-color="#e2a52c"/>
+      <stop offset="1" stop-color="#7d4a0c"/>
+    </linearGradient>
+    <radialGradient id="disc" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#b02422"/>
+      <stop offset="0.7" stop-color="#5f0e10"/>
+      <stop offset="1" stop-color="#2c0506"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="96" fill="#1e0e02"/>
+  <circle cx="128" cy="128" r="84" fill="url(#disc)"/>
+  <circle cx="128" cy="128" r="86" fill="none" stroke="url(#ring)" stroke-width="12"/>
+  <g transform="translate(51.2 50) scale(0.6)">
+    <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+             fill="#c9d2de" stroke="#14080a" stroke-width="14" stroke-linejoin="round"/>
+    <polygon points="128,136 128.0,22.0 155.0,98.8" fill="#dfe6ef"/>
+    <polygon points="128,136 155.0,98.8 236.4,100.8" fill="#f4f7fb"/>
+    <polygon points="128,136 236.4,100.8 171.7,150.2" fill="#a9b4c4"/>
+    <polygon points="128,136 171.7,150.2 195.0,228.2" fill="#c3ccd9"/>
+    <polygon points="128,136 195.0,228.2 128.0,182.0" fill="#8793a6"/>
+    <polygon points="128,136 128.0,182.0 61.0,228.2" fill="#9eaabb"/>
+    <polygon points="128,136 61.0,228.2 84.3,150.2" fill="#76839a"/>
+    <polygon points="128,136 84.3,150.2 19.6,100.8" fill="#e3e9f1"/>
+    <polygon points="128,136 19.6,100.8 101.0,98.8" fill="#ffffff"/>
+    <polygon points="128,136 101.0,98.8 128.0,22.0" fill="#ffffff"/>
+    <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+             fill="none" stroke="#14080a" stroke-width="10" stroke-linejoin="round"/>
+  </g>
+</svg>

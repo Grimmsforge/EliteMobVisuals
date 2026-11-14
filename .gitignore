@@ -1,0 +1,29 @@
+# Elite Mob Visuals - WoW Addon
+# =============================
+
+# Build output
+dist/
+
+# Node tooling (tests)
+tools/tests/node_modules/
+
+# Python caches (art pipeline)
+__pycache__/
+*.pyc
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor
+*.swp
+*.swo
+.vs/
+.idea/
+.claude/settings.local.json
+
+# Blizzard's own UI textures, kept locally for design reference only. They are
+# Blizzard Entertainment's art, so they are not published with this repo.
+# Re-download from https://github.com/Gethe/wow-ui-textures (TARGETINGFRAME/).
+docs/reference/

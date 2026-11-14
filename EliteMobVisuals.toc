@@ -1,0 +1,35 @@
+## Interface: 16001
+## Title: Elite Mob Visuals
+## Notes: A customisable elite, rare and boss marker beside your target's nameplate, and an optional marker above elite and rare mobs.
+## Author: Joe Tomkinson (Grimmvöcare - Bronzebeard) @ GrimmsForge
+## Version: 0.1.0
+## SavedVariables: EliteMobVisualsDB
+## IconTexture: Interface\AddOns\EliteMobVisuals\media\logo\emv-icon-64
+## AddonCompartmentFunc: EliteMobVisuals_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: EliteMobVisuals_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: EliteMobVisuals_OnAddonCompartmentLeave
+
+# Namespace, helpers and strings first: everything after reads them.
+Core\Init.lua
+Locales\enUS.lua
+
+# Saved variables and their defaults.
+Core\DB.lua
+Core\Defaults.lua
+
+# What to draw (styles), on what (classification), and how (the visuals).
+Core\Media.lua
+Core\Classify.lua
+Core\Plates.lua
+Core\Visuals.lua
+Core\TargetFrame.lua
+
+# The minimap launcher (looks like a LibDBIcon button to minimap button bags).
+Core\MinimapButton.lua
+
+# Options window and the game Settings page.
+UI\Widgets.lua
+UI\Options.lua
+
+# Events, nameplate tracking and slash commands. Last, so every module exists.
+Core\EliteMobVisuals.lua

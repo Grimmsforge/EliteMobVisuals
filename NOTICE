@@ -1,0 +1,14 @@
+Elite Mob Visuals
+Copyright 2026 Joe Tomkinson (Grimmvocare - Bronzebeard) @ GrimmsForge
+
+This product includes software developed by Joe Tomkinson
+(Grimmvocare - Bronzebeard) @ GrimmsForge.
+
+The artwork in media/ (badge textures and the Elite Mob Visuals logo) is
+original work, generated from the SVG sources in tools/art/src/, and is
+covered by the same licence as the code.
+
+The "Blizzard" styles draw textures from the World of Warcraft client at
+runtime; the addon does not ship them, and this repository does not include
+any of Blizzard Entertainment's art. World of Warcraft and Blizzard Entertainment are
+trademarks or registered trademarks of Blizzard Entertainment, Inc.

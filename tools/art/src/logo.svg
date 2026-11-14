@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Elite Mob Visuals logo: gold elite wings either side of a crimson disc
+       holding a silver rare star, inside a gold ring. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#fff4b8"/>
+      <stop offset="0.45" stop-color="#f1bd3f"/>
+      <stop offset="1" stop-color="#8a5310"/>
+    </linearGradient>
+    <linearGradient id="goldArm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c98a1c"/>
+      <stop offset="1" stop-color="#fff7cf"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1a6"/>
+      <stop offset="0.5" stop-color="#e2a52c"/>
+      <stop offset="1" stop-color="#7d4a0c"/>
+    </linearGradient>
+    <radialGradient id="disc" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#a3201f"/>
+      <stop offset="0.7" stop-color="#5a0d0f"/>
+      <stop offset="1" stop-color="#2c0506"/>
+    </radialGradient>
+    <linearGradient id="silverHi" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9e2ee"/>
+    </linearGradient>
+    <g id="wing">
+      <path d="M 30 150 C 62 92, 140 40, 234 26 C 206 60, 214 86, 246 110 C 206 116, 200 142, 224 178
+               C 186 166, 168 188, 172 226 C 140 198, 102 188, 70 192 C 54 188, 38 172, 30 150 Z"
+            fill="url(#gold)" stroke="#2a1704" stroke-width="8" stroke-linejoin="round"/>
+      <g stroke="#7a4a0c" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.9">
+        <path d="M 50 150 Q 150 100, 244 110"/>
+        <path d="M 50 152 Q 150 140, 222 176"/>
+        <path d="M 50 156 Q 130 170, 170 222"/>
+      </g>
+      <path d="M 30 150 C 62 92, 140 40, 234 26 C 150 58, 84 102, 46 158 Z"
+            fill="url(#goldArm)" stroke="#2a1704" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M 120 66 L 106 38 L 132 60 Z" fill="#fff7cf" stroke="#2a1704" stroke-width="5" stroke-linejoin="round"/>
+    </g>
+  </defs>
+
+  <!-- wings, behind the disc -->
+  <use xlink:href="#wing" transform="translate(290 156) scale(0.85) rotate(-10 30 150)"/>
+  <use xlink:href="#wing" transform="translate(222 156) scale(-0.85 0.85) rotate(-10 30 150)"/>
+
+  <!-- disc and ring -->
+  <circle cx="256" cy="256" r="130" fill="#1e0e02"/>
+  <circle cx="256" cy="256" r="120" fill="url(#disc)"/>
+  <circle cx="256" cy="256" r="124" fill="none" stroke="url(#ring)" stroke-width="16"/>
+  <circle cx="256" cy="256" r="132" fill="none" stroke="#1e0e02" stroke-width="4"/>
+  <circle cx="256" cy="256" r="115" fill="none" stroke="#1e0e02" stroke-width="3"/>
+  <!-- ring studs -->
+  <g fill="url(#ring)" stroke="#1e0e02" stroke-width="3">
+    <circle cx="256" cy="132" r="9"/>
+    <circle cx="256" cy="380" r="9"/>
+  </g>
+
+  <!-- silver faceted star -->
+  <g transform="translate(157 145) scale(0.775)">
+    <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+             fill="#c9d2de" stroke="#14080a" stroke-width="10" stroke-linejoin="round"/>
+    <polygon points="128,136 128.0,22.0 155.0,98.8" fill="#dfe6ef"/>
+    <polygon points="128,136 155.0,98.8 236.4,100.8" fill="#f4f7fb"/>
+    <polygon points="128,136 236.4,100.8 171.7,150.2" fill="#a9b4c4"/>
+    <polygon points="128,136 171.7,150.2 195.0,228.2" fill="#c3ccd9"/>
+    <polygon points="128,136 195.0,228.2 128.0,182.0" fill="#8793a6"/>
+    <polygon points="128,136 128.0,182.0 61.0,228.2" fill="#9eaabb"/>
+    <polygon points="128,136 61.0,228.2 84.3,150.2" fill="#76839a"/>
+    <polygon points="128,136 84.3,150.2 19.6,100.8" fill="#e3e9f1"/>
+    <polygon points="128,136 19.6,100.8 101.0,98.8" fill="url(#silverHi)"/>
+    <polygon points="128,136 101.0,98.8 128.0,22.0" fill="#ffffff"/>
+    <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+             fill="none" stroke="#14080a" stroke-width="7" stroke-linejoin="round"/>
+  </g>
+</svg>

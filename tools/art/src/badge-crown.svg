@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Crown: five points with orbs and a jewelled band. Greyscale for tinting. -->
+  <defs>
+    <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.7" stop-color="#cccccc"/>
+      <stop offset="1" stop-color="#8a8a8a"/>
+    </linearGradient>
+  </defs>
+  <path d="M 30 196 L 22 76 L 76 128 L 102 56 L 128 112 L 154 56 L 180 128 L 234 76 L 226 196 Z"
+        fill="url(#fill)" stroke="#1c1c1c" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="26" y="186" width="204" height="40" rx="8" fill="#d8d8d8" stroke="#1c1c1c" stroke-width="8"/>
+  <g fill="#ffffff" stroke="#1c1c1c" stroke-width="6">
+    <circle cx="22" cy="70" r="13"/>
+    <circle cx="102" cy="48" r="13"/>
+    <circle cx="154" cy="48" r="13"/>
+    <circle cx="234" cy="70" r="13"/>
+  </g>
+  <g fill="#4a4a4a" stroke="#1c1c1c" stroke-width="4">
+    <circle cx="78" cy="206" r="9"/>
+    <polygon points="128,194 140,206 128,218 116,206"/>
+    <circle cx="178" cy="206" r="9"/>
+  </g>
+</svg>

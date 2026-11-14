@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Arrow: a solid downward arrow with a short shaft. Greyscale for tinting. -->
+  <polygon points="92,18 164,18 164,110 222,110 128,236 34,110 92,110" fill="#cfcfcf"/>
+  <polygon points="92,18 128,18 128,236 34,110 92,110" fill="#ffffff"/>
+  <polygon points="92,18 164,18 164,110 222,110 128,236 34,110 92,110" fill="none" stroke="#1c1c1c" stroke-width="9" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Faceted Star: ten bevelled facets, light and shade alternating. -->
+  <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+           fill="#cccccc" stroke="#1c1c1c" stroke-width="9" stroke-linejoin="round"/>
+  <g stroke="none">
+    <polygon points="128,136 128.0,22.0 155.0,98.8" fill="#d6d6d6"/>
+    <polygon points="128,136 155.0,98.8 236.4,100.8" fill="#f2f2f2"/>
+    <polygon points="128,136 236.4,100.8 171.7,150.2" fill="#a8a8a8"/>
+    <polygon points="128,136 171.7,150.2 195.0,228.2" fill="#c4c4c4"/>
+    <polygon points="128,136 195.0,228.2 128.0,182.0" fill="#8c8c8c"/>
+    <polygon points="128,136 128.0,182.0 61.0,228.2" fill="#a0a0a0"/>
+    <polygon points="128,136 61.0,228.2 84.3,150.2" fill="#7c7c7c"/>
+    <polygon points="128,136 84.3,150.2 19.6,100.8" fill="#e0e0e0"/>
+    <polygon points="128,136 19.6,100.8 101.0,98.8" fill="#ffffff"/>
+    <polygon points="128,136 101.0,98.8 128.0,22.0" fill="#ffffff"/>
+  </g>
+  <polygon points="128.0,22.0 155.0,98.8 236.4,100.8 171.7,150.2 195.0,228.2 128.0,182.0 61.0,228.2 84.3,150.2 19.6,100.8 101.0,98.8"
+           fill="none" stroke="#1c1c1c" stroke-width="7" stroke-linejoin="round"/>
+</svg>

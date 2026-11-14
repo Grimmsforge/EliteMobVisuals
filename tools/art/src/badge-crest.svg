@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Heraldic Crest: a shield with a star. Greyscale for tinting. -->
+  <defs>
+    <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.6" stop-color="#cfcfcf"/>
+      <stop offset="1" stop-color="#8c8c8c"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a7a7a"/>
+      <stop offset="1" stop-color="#3c3c3c"/>
+    </linearGradient>
+  </defs>
+  <path d="M 128 14 L 226 46 L 226 118 C 226 180, 184 222, 128 244 C 72 222, 30 180, 30 118 L 30 46 Z"
+        fill="url(#fill)" stroke="#1c1c1c" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M 128 40 L 202 64 L 202 120 C 202 168, 170 200, 128 218 C 86 200, 54 168, 54 120 L 54 64 Z"
+        fill="url(#inner)" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="128,62 142,104 186,104 150,130 164,172 128,146 92,172 106,130 70,104 114,104"
+           fill="#ffffff" stroke="#1c1c1c" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="128,62 142,104 128,120 114,104" fill="#e8e8e8"/>
+  <path d="M 44 54 L 128 26 L 212 54" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+</svg>

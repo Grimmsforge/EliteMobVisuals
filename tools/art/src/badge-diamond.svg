@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Cut Gem: a faceted diamond. Greyscale for tinting. -->
+  <g stroke="none">
+    <polygon points="128,16 76,84 128,84" fill="#ffffff"/>
+    <polygon points="128,16 180,84 128,84" fill="#dcdcdc"/>
+    <polygon points="128,16 76,84 32,84" fill="#e8e8e8"/>
+    <polygon points="128,16 180,84 224,84" fill="#b8b8b8"/>
+    <polygon points="32,84 76,84 128,240" fill="#c8c8c8"/>
+    <polygon points="76,84 128,84 128,240" fill="#a4a4a4"/>
+    <polygon points="128,84 180,84 128,240" fill="#8a8a8a"/>
+    <polygon points="180,84 224,84 128,240" fill="#6e6e6e"/>
+  </g>
+  <polygon points="128,16 224,84 128,240 32,84" fill="none" stroke="#1c1c1c" stroke-width="8" stroke-linejoin="round"/>
+  <g stroke="#1c1c1c" stroke-width="3" fill="none" opacity="0.7">
+    <polyline points="32,84 224,84"/>
+    <polyline points="76,84 128,16 180,84"/>
+    <polyline points="76,84 128,240 180,84"/>
+  </g>
+  <path d="M 58 80 L 112 30" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+</svg>

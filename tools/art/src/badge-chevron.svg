@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Chevron: a bevelled downward chevron, for pointing at a mob from above. -->
+  <polygon points="18,58 128,150 238,58 238,128 128,222 18,128" fill="#bdbdbd"/>
+  <polygon points="18,58 128,150 128,222 18,128" fill="#ffffff"/>
+  <polygon points="128,150 238,58 238,128 128,222" fill="#9a9a9a"/>
+  <polygon points="18,58 128,150 238,58 238,128 128,222 18,128" fill="none" stroke="#1c1c1c" stroke-width="9" stroke-linejoin="round"/>
+  <line x1="128" y1="150" x2="128" y2="222" stroke="#1c1c1c" stroke-width="3" opacity="0.6"/>
+</svg>
