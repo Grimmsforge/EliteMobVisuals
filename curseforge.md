@@ -2,6 +2,10 @@
 
 Clear, customisable markers for <span style="color:#D99E00">**elite**</span>, <span style="color:#3BA9E8">**rare elite**</span>, <span style="color:#8A93A6">**rare**</span> and <span style="color:#E5482C">**boss**</span> mobs in **WoW Forever**, for when your nameplates don't show them the way you want.
 
+<span style="color:#D4961E">**New in 0.2.0**</span>: **end pieces** that wrap the end of the health bar, and a **Width** slider to fit any style to your plates.
+
+![The Clawed Clasp and Winged Gem end pieces on a health bar, in each classification's colour](https://raw.githubusercontent.com/Grimmsforge/EliteMobVisuals/main/docs/logo/end-pieces-preview.png)
+
 ---
 
 ## <span style="color:#D4961E">What it does</span>

@@ -1,17 +1,32 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+Player-facing notes for each release are in `RELEASE_NOTES.md`.
+
+## 0.2.0 (2026-11-15)
+
+- End pieces, which wrap the end of the health bar: Clawed Clasp and Winged
+  Gem (15 styles in all). Set them on the left end, the right end, or both
+  (mirrored). Each overlaps the bar's end by a share of its own width
+  (`inset` in `Core/Media.lua`), so it stays on the bar's end at any size.
+- Styles can face left (`facing = "left"`) and crop their texture (`coords`,
+  `aspect`), for art that isn't square.
+- Width slider on every visual, separate from Size (the height): stretch or
+  squash any style to fit your plates. New `width` setting, default 1.
+- Art pipeline: end pieces come from painted art (`tools/art/src/*.webp`),
+  converted to 256x256 greyscale TGA; `docs/logo/end-pieces-preview.png`
+  shows them on a bar.
+- TOC notes mention the target frame and end pieces.
+- `RELEASE_NOTES.md`, player-facing notes per version; the build warns when
+  the version has none.
+
+## 0.1.0 (2026-11-14)
 
 First version, for WoW Forever (Interface 16001).
 
-- Target badge beside elite, rare, rare elite and boss nameplates: 15 styles,
+- Target badge beside elite, rare, rare elite and boss nameplates: 13 styles,
   9 positions, mirrored pairs, size, offsets, opacity, tint, glow and
   animations.
 - Overhead marker above marked mobs, with an optional text label.
-- End pieces, which wrap the end of the health bar: Clawed Clasp and Winged
-  Gem. Set them on the left end, the right end, or both (mirrored).
-- Width slider on every visual, separate from Size (the height): stretch or
-  squash any style to fit your plates.
 - Four visuals, each set up on its own: a badge and a marker on the
   nameplate, and a badge and a marker on the target frame (EllesmereUI's or
   Blizzard's, also ElvUI and Shadowed Unit Frames, or a free, draggable

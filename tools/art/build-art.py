@@ -16,6 +16,8 @@ Outputs
     docs/logo/emv-logo-512.png   CurseForge / README logo
     docs/logo/emv-logo-256.png
     docs/logo/styles-preview.png every bundled style, tinted per classification
+    docs/logo/end-pieces-preview.png
+                                 the end pieces on a health bar, per classification
     docs/logo/curseforge/emv-curseforge-<size>.png
                                  CurseForge project avatar: the logo on a square
                                  backdrop (curseforge-bg.svg), 1024 master plus
@@ -46,6 +48,10 @@ BADGES = ["badge-wing", "badge-crest", "badge-star", "badge-skull",
 # the left of a square canvas. Core/Media.lua crops the empty right side away
 # with coords = { 0, width / TEXTURE_END, 0, 1 }; the width is printed below.
 END_PIECES = ["end-clasp", "end-winged"]
+# For docs/logo/end-pieces-preview.png only: the share of the piece's width
+# that overlaps the bar (inset in Core/Media.lua, keep in step) and the piece's
+# height as a multiple of the bar's.
+END_PREVIEW = {"end-clasp": (0.18, 3.6), "end-winged": (0.30, 4.6)}
 TEXTURE_END = 256
 END_WHITE = 190   # source grey that becomes full white (the art's ~90th percentile)
 
@@ -108,6 +114,37 @@ def build_preview(rendered: dict) -> None:
             sheet.alpha_composite(tint(base, rgb), (pad + col * (cell + pad) + (cell - w) // 2, pad + row * (cell + pad)))
     DOCS_LOGO.mkdir(parents=True, exist_ok=True)
     sheet.save(DOCS_LOGO / "styles-preview.png")
+
+
+def build_end_preview(rendered: dict) -> None:
+    """Each end piece on both ends of a health bar, once per classification."""
+    from PIL import ImageDraw, ImageOps
+    bar_h, bar_w, gap = 22, 150, 26
+    cells = []
+    for name in END_PIECES:
+        inset, scale = END_PREVIEW[name]
+        h = round(bar_h * scale)
+        w = round(h * rendered[name].width / rendered[name].height)
+        cells.append((rendered[name].resize((w, h), Image.LANCZOS), w, h, round(w * inset)))
+    cell_w = max(bar_w + 2 * (w - i) for _, w, _, i in cells) + gap
+    width = gap + len(CLASS_COLOURS) * cell_w
+    height = gap + sum(h + gap for _, _, h, _ in cells)
+    sheet = Image.new("RGBA", (width, height), (24, 22, 28, 255))
+    draw = ImageDraw.Draw(sheet)
+    y = gap
+    for art, w, h, inset in cells:
+        cy = y + h // 2
+        for col, (_, rgb) in enumerate(CLASS_COLOURS):
+            x0 = gap + col * cell_w + (cell_w - gap - bar_w) // 2
+            top = cy - bar_h // 2
+            draw.rectangle([x0 - 1, top - 1, x0 + bar_w, top + bar_h], fill=(0, 0, 0, 255))
+            draw.rectangle([x0, top, x0 + int(bar_w * 0.72), top + bar_h - 1], fill=(196, 38, 30, 255))
+            draw.rectangle([x0 + int(bar_w * 0.72) + 1, top, x0 + bar_w - 1, top + bar_h - 1], fill=(52, 14, 12, 255))
+            piece = tint(art, rgb)
+            sheet.alpha_composite(piece, (x0 - w + inset, y))
+            sheet.alpha_composite(ImageOps.mirror(piece), (x0 + bar_w - inset, y))
+        y += h + gap
+    sheet.save(DOCS_LOGO / "end-pieces-preview.png")
 
 
 def render_at(svg_path: pathlib.Path, size: int, oversample: int = 2) -> Image.Image:
@@ -177,6 +214,8 @@ def main() -> None:
 
     build_preview(rendered)
     print("  docs/logo/styles-preview.png")
+    build_end_preview(rendered)
+    print("  docs/logo/end-pieces-preview.png")
 
     build_curseforge()
 

@@ -3,8 +3,10 @@
 # Elite Mob Visuals
 
 A lightweight World of Warcraft: **WoW Forever** addon that puts a clear,
-customisable marker beside your target's nameplate when it is an **elite**,
-**rare**, **rare elite** or **boss**, plus an optional marker above their heads.
+customisable marker beside the nameplate of an **elite**, **rare**, **rare
+elite** or **boss** mob, an optional marker above its head, and the same on
+your target frame. Styles include end pieces that wrap the end of the health
+bar.
 
 It is for players whose nameplates (Blizzard's, Plater, ElvUI, EllesmereUI,
 Kui or anything else) don't show elite and rare mobs the way they want. It
@@ -73,6 +75,8 @@ works alongside any nameplate addon, with no libraries and no dependencies.
 
 ![Bundled styles, tinted per classification](docs/logo/styles-preview.png)
 
+![The end pieces on a health bar, tinted per classification](docs/logo/end-pieces-preview.png)
+
 *Bundled styles in the default Elite, Rare Elite, Rare and Boss colours.*
 
 ## Usage
@@ -126,6 +130,12 @@ npm test         # or: node run-all.js <name filter>
 ./scripts/build/build.ps1 -SkipChecks  # build only
 ```
 
+Before a release, add the version's section to `RELEASE_NOTES.md`, newest
+first: it's written for players and pasted into CurseForge's changelog box
+when the zip is uploaded (`.pkgmeta` points CurseForge's packager at it too).
+The build warns if the version has no section. `CHANGELOG.md` keeps the
+developer detail, and `curseforge.md` is the project description.
+
 To test the packaged build in game, run
 `./scripts/link/dist-forever/link-forever.ps1`, which points the AddOns
 junction at `dist/forever/EliteMobVisuals`. Run `link-addon.ps1` to switch
@@ -138,7 +148,7 @@ the repo.
 
 ### Art
 
-Every texture comes from an SVG in `tools/art/src/`. After editing one, run:
+Every texture comes from a source in `tools/art/src/`: SVG for the badges and logo, painted WebP for the end pieces. After editing one, run:
 
 ```powershell
 pip install cairosvg pillow   # once
@@ -157,7 +167,11 @@ The script writes:
   because minimap button bags crop and ring the edge of any icon they collect.
   EllesmereUI's minimap flyout stretches the icon to the button, crops 5% off
   each side and draws its own ring over the rim.
-- `docs/logo/`: the README images.
+- `media/textures/end-*.tga`: the end pieces, 256×256, from painted art
+  (`tools/art/src/end-*.webp`, the bar's left end on a transparent
+  background), converted to greyscale and brightened so they tint fully.
+- `docs/logo/`: the README and CurseForge images, including
+  `styles-preview.png` (every style) and `end-pieces-preview.png`.
 - `docs/logo/curseforge/emv-curseforge-1024.png`: the CurseForge project
   avatar, with 512 and 400 copies. It is the logo on an opaque square
   backdrop (`tools/art/src/curseforge-bg.svg`), so it reads on CurseForge's
@@ -197,6 +211,9 @@ tools/art/             SVG sources and the render script (dev only)
 tools/tests/           fengari tests (dev only)
 scripts/               build and junction scripts (dev only)
 docs/                  logo renders and CurseForge images (dev only)
+RELEASE_NOTES.md       player-facing notes per version (CurseForge changelog)
+CHANGELOG.md           developer changelog
+curseforge.md          the CurseForge project description
 ```
 
 ## WoW Forever notes

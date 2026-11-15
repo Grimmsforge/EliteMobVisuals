@@ -9,3 +9,8 @@ ignore:
   - .pkgmeta
   - .vscode
   - "*.md"
+
+# The changelog CurseForge shows for a repo-packaged file.
+manual-changelog:
+  filename: RELEASE_NOTES.md
+  markup-type: markdown

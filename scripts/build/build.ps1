@@ -136,6 +136,16 @@ Write-Host ""
 Write-Host "Zips:" -ForegroundColor Green
 foreach ($target in $Targets) { Build-Variant -Target $target }
 
+# Release notes: the version's section is the CurseForge changelog.
+$notesFile = Join-Path $root "RELEASE_NOTES.md"
+$hasNotes = (Test-Path $notesFile) -and ((Get-Content $notesFile -Raw -Encoding UTF8) -match "(?m)^## $([regex]::Escape($version))\b")
+Write-Host ""
+if ($hasNotes) {
+    Write-Host "Changelog: paste the '## $version' section of RELEASE_NOTES.md" -ForegroundColor Gray
+} else {
+    Write-Warning "RELEASE_NOTES.md has no '## $version' section. Add one before uploading."
+}
+
 Write-Host ""
 Write-Host "Ready to upload to CurseForge:" -ForegroundColor Green
 foreach ($target in $Targets) {

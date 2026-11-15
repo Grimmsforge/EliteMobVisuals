@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Title: Elite Mob Visuals
-## Notes: A customisable elite, rare and boss marker beside your target's nameplate, and an optional marker above elite and rare mobs.
+## Notes: Customisable elite, rare and boss markers on nameplates and the target frame, with end pieces that wrap the health bar.
 ## Author: Joe Tomkinson (Grimmvöcare - Bronzebeard) @ GrimmsForge
-## Version: 0.1.0
+## Version: 0.2.0
 ## SavedVariables: EliteMobVisualsDB
 ## IconTexture: Interface\AddOns\EliteMobVisuals\media\logo\emv-icon-64
 ## AddonCompartmentFunc: EliteMobVisuals_OnAddonCompartmentClick
