@@ -35,9 +35,11 @@ works alongside any nameplate addon, with no libraries and no dependencies.
 
   The filters (only mobs you can attack, only in combat, hide on dead mobs)
   are there too. Each visual's page only sets how it looks.
-- **13 styles.** Eight bundled styles (Gilded Wing, Heraldic Crest, Faceted
+- **15 styles.** Eight bundled styles (Gilded Wing, Heraldic Crest, Faceted
   Star, Skull, Cut Gem, Crown, Chevron, Arrow), tinted to each classification's
-  colour. Five use the game's own art: the nameplate classification icon, the
+  colour. Two end pieces, Clawed Clasp and Winged Gem, that wrap the end of
+  the health bar (left, right or both); Size sets its height and Width stretches it to fit
+  your plates. Five use the game's own art: the nameplate classification icon, the
   target-frame dragon, the classic vanilla dragon, the minimap rare vignette
   and the raid target icons.
 - **Backgrounds.** Each visual can have a plain rectangle behind its art. You set

@@ -56,6 +56,8 @@ ns.DEFAULTS = {
             style = "wing",
             classStyles = { elite = "", rareelite = "", rare = "", worldboss = "" },
             size = 26,
+            -- Width as a share of the art's own: stretch or squash to fit a plate.
+            width = 1,
             -- Where on the plate, see ns.PLACEMENTS in Visuals.lua.
             point = "LEFT",
             x = 0,
@@ -104,6 +106,8 @@ ns.DEFAULTS = {
             style = "",
             classStyles = { elite = "", rareelite = "", rare = "", worldboss = "" },
             size = 32,
+            -- Width as a share of the art's own: stretch or squash to fit a plate.
+            width = 1,
             point = "RIGHT",
             x = 0,
             y = 0,
@@ -140,6 +144,8 @@ ns.DEFAULTS = {
             style = "chevron",
             classStyles = { elite = "", rareelite = "", rare = "", worldboss = "" },
             size = 22,
+            -- Width as a share of the art's own: stretch or squash to fit a plate.
+            width = 1,
             x = 0,
             y = 4,
             alpha = 1,
@@ -180,6 +186,8 @@ ns.DEFAULTS = {
             style = "",
             classStyles = { elite = "", rareelite = "", rare = "", worldboss = "" },
             size = 22,
+            -- Width as a share of the art's own: stretch or squash to fit a plate.
+            width = 1,
             x = 0,
             y = 4,
             alpha = 1,

@@ -9,6 +9,7 @@ Needs: pip install cairosvg pillow
 
 Outputs
     media/textures/<name>.tga    128x128 badge textures (greyscale, tinted in game)
+    media/textures/end-*.tga     256x256 end pieces, from painted art (tools/art/src/*.webp)
     media/logo/emv-icon-64.tga   compact icon, no wings and padded: minimap button,
                                  addon compartment, TOC IconTexture (addon list)
     media/logo/emv-logo-128.tga  full logo with wings: options window, Settings page
@@ -38,6 +39,15 @@ DOCS_LOGO = ROOT / "docs" / "logo"
 # Badge textures shipped with the addon. Keep in step with Core/Media.lua.
 BADGES = ["badge-wing", "badge-crest", "badge-star", "badge-skull",
           "badge-diamond", "badge-crown", "badge-chevron", "badge-arrow", "glow"]
+
+# End pieces: painted raster art (tools/art/src/<name>.webp), the bar's LEFT
+# end, cut out on a transparent background. Converted to greyscale, levelled
+# so the brightest metal tints fully, scaled to TEXTURE_END tall and placed at
+# the left of a square canvas. Core/Media.lua crops the empty right side away
+# with coords = { 0, width / TEXTURE_END, 0, 1 }; the width is printed below.
+END_PIECES = ["end-clasp", "end-winged"]
+TEXTURE_END = 256
+END_WHITE = 190   # source grey that becomes full white (the art's ~90th percentile)
 
 # Default classification colours (Core/Defaults.lua), for the preview sheet.
 CLASS_COLOURS = [
@@ -69,16 +79,33 @@ def tint(im: Image.Image, rgb) -> Image.Image:
     return Image.merge("RGBA", (r, g, b, a))
 
 
+def build_end_piece(name: str) -> Image.Image:
+    from PIL import ImageOps
+    src = Image.open(SRC / f"{name}.webp").convert("RGBA")
+    src = src.crop(src.getchannel("A").getbbox())
+    grey = ImageOps.grayscale(src.convert("RGB")).point(lambda v: min(255, v * 255 // END_WHITE))
+    art = Image.merge("RGBA", (grey, grey, grey, src.getchannel("A")))
+    width = round(art.width * TEXTURE_END / art.height)
+    art = art.resize((width, TEXTURE_END), Image.LANCZOS)
+    canvas = Image.new("RGBA", (TEXTURE_END, TEXTURE_END), (0, 0, 0, 0))
+    canvas.alpha_composite(art, (0, 0))
+    save_tga(canvas, TEXTURES / f"{name}.tga")
+    print(f"  media/textures/{name}.tga  (art width {width} of {TEXTURE_END})")
+    return art
+
+
 def build_preview(rendered: dict) -> None:
-    names = [n for n in BADGES if n != "glow"]
+    names = [n for n in BADGES if n != "glow"] + END_PIECES
     cell, pad = 72, 12
     w = pad + len(CLASS_COLOURS) * (cell + pad)
     h = pad + len(names) * (cell + pad)
     sheet = Image.new("RGBA", (w, h), (24, 22, 28, 255))
     for row, name in enumerate(names):
-        base = rendered[name].resize((cell, cell), Image.LANCZOS)
+        art = rendered[name]
+        w = round(cell * art.width / art.height)
+        base = art.resize((w, cell), Image.LANCZOS)
         for col, (_, rgb) in enumerate(CLASS_COLOURS):
-            sheet.alpha_composite(tint(base, rgb), (pad + col * (cell + pad), pad + row * (cell + pad)))
+            sheet.alpha_composite(tint(base, rgb), (pad + col * (cell + pad) + (cell - w) // 2, pad + row * (cell + pad)))
     DOCS_LOGO.mkdir(parents=True, exist_ok=True)
     sheet.save(DOCS_LOGO / "styles-preview.png")
 
@@ -134,6 +161,9 @@ def main() -> None:
         rendered[name] = im
         save_tga(im, TEXTURES / f"{name}.tga")
         print(f"  media/textures/{name}.tga")
+
+    for name in END_PIECES:
+        rendered[name] = build_end_piece(name)
 
     logo_svg = SRC / "logo.svg"
     save_tga(render(logo_svg, 128), LOGO / "emv-logo-128.tga")

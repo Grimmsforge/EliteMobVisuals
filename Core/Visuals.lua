@@ -131,7 +131,7 @@ end
 -- Draw a style spec into an element. opts: the badge or overhead settings.
 local function Paint(f, spec, opts, color, mirrored)
     local size = opts.size
-    local w = size * (spec.aspect or 1)
+    local w = size * (spec.aspect or 1) * (opts.width or 1)
     f:SetSize(w, size)
 
     local tex = f.tex
@@ -352,15 +352,22 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts, m
         local spec = Media.Resolve(StyleFor(b, parent, class, false) or "wing", class)
         local spot = ns.PLACEMENTS[b.point] or ns.PLACEMENTS.LEFT
         local point = ns.PLACEMENTS[b.point] and b.point or "LEFT"
-        -- Art that points right faces outward on the left side; Flip inverts.
-        local mirrored = (spec.facing == "right" and spot.side == "left") ~= (b.flip == true)
+        -- Art that points one way faces outward on either side; Flip inverts.
+        local mirrored = ((spec.facing == "right" and spot.side == "left")
+            or (spec.facing == "left" and spot.side == "right")) ~= (b.flip == true)
+        -- An end piece overlaps the bar's end by its inset, at any size.
+        local x = b.x
+        if spec.inset and spot.side then
+            local inset = b.size * (spec.aspect or 1) * (b.width or 1) * spec.inset
+            x = x + ((spot.side == "left") and inset or -inset)
+        end
 
         local e = self:Element("badge")
         Attach(e, place, anchor)
         Paint(e, spec, b, color, mirrored)
         PaintBackground(e, b.bg, nil, color)
         e:ClearAllPoints()
-        e:SetPoint(spot.my, anchor, point, b.x, b.y)
+        e:SetPoint(spot.my, anchor, point, x, b.y)
         e:Show()
         SetAnim(e, b.anim)
 
@@ -377,7 +384,7 @@ function Set:Update(class, place, showBadge, showOverhead, profile, badgeOpts, m
                 borderTint = b.bg.borderTint,
             } or nil, nil, color)
             e2:ClearAllPoints()
-            e2:SetPoint(other.my, anchor, spot.mirror, -b.x, b.y)
+            e2:SetPoint(other.my, anchor, spot.mirror, -x, b.y)
             e2:Show()
             SetAnim(e2, b.anim)
         else

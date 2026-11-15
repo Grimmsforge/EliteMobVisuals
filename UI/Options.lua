@@ -523,6 +523,7 @@ local function BuildVisual(page, v)
     -- Size and placement.
     right:Header(L["Size and placement"])
     right:Add(Slider(page, L["Size"], s, "size", 8, v.frame and 128 or 96, 1))
+    right:Add(Slider(page, L["Width"], s, "width", 0.5, 2.5, 0.05, "x%.2f"))
     right:Add(Slider(page, L["Horizontal offset"], s, "x", -150, 150, 1))
     if isMarker then
         right:Add(Slider(page, v.frame and L["Height above the frame"] or L["Height above the plate"], s, "y", -40, 150, 1))

@@ -4,10 +4,14 @@
 
 First version, for WoW Forever (Interface 16001).
 
-- Target badge beside elite, rare, rare elite and boss nameplates: 13 styles,
+- Target badge beside elite, rare, rare elite and boss nameplates: 15 styles,
   9 positions, mirrored pairs, size, offsets, opacity, tint, glow and
   animations.
 - Overhead marker above marked mobs, with an optional text label.
+- End pieces, which wrap the end of the health bar: Clawed Clasp and Winged
+  Gem. Set them on the left end, the right end, or both (mirrored).
+- Width slider on every visual, separate from Size (the height): stretch or
+  squash any style to fit your plates.
 - Four visuals, each set up on its own: a badge and a marker on the
   nameplate, and a badge and a marker on the target frame (EllesmereUI's or
   Blizzard's, also ElvUI and Shadowed Unit Frames, or a free, draggable

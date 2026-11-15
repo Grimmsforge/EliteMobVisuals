@@ -16,13 +16,13 @@ Clear, customisable markers for <span style="color:#D99E00">**elite**</span>, <s
 
 ## <span style="color:#D4961E">Make it yours</span>
 
-**13 styles**: eight original designs, plus the game's own elite, rare and dragon art.
+**15 styles**: eight original designs, two end pieces (a clawed clasp and a winged gem) that wrap the end of the health bar, and the game's own elite, rare and dragon art.
 
 ![The bundled styles, in each classification's colour](https://raw.githubusercontent.com/Grimmsforge/EliteMobVisuals/main/docs/logo/styles-preview.png)
 
 **A colour and style per classification**: a <span style="color:#D99E00">gold wing</span> for elites and a <span style="color:#8A93A6">silver star</span> for rares, for example.
 
-**Placement and effects**: size, position, offsets, opacity, glow, a background with a border, and pulse, breathe, bob or spin animations.
+**Placement and effects**: size and width, position, offsets, opacity, glow, a background with a border, and pulse, breathe, bob or spin animations.
 
 **Filters**: only mobs you can attack, only in combat, hide on dead mobs.
 

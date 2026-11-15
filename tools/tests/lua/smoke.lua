@@ -102,6 +102,37 @@ for _, style in ipairs(ns.Media.ORDER) do
 end
 __check(ns.Media.Resolve("blizzIcon", "elite").file == ns.MEDIA .. "textures\\badge-crest", "missing atlas falls back to a bundled style")
 
+-- End piece: grips both ends of the bar, mirrored, overlapping by its inset at
+-- any size and width; Width stretches it.
+for _, endPiece in ipairs({ "clasp", "winged" }) do
+    local saved = { p.badge.style, p.badge.point, p.badge.pair, p.badge.size, p.badge.width, p.badge.x }
+    p.badge.style, p.badge.point, p.badge.pair, p.badge.size, p.badge.width, p.badge.x = endPiece, "LEFT", true, 40, 1.5, 2
+    ns.NotifySettingsChanged()
+    local spec = ns.Media.Resolve(endPiece, "elite")
+    __check(spec.inset and spec.facing == "left", endPiece .. ": is an end piece")
+    local w = 40 * spec.aspect * 1.5
+    local n, list = __ShownElements(elite)
+    __check(n == 2, endPiece .. ": both ends")
+    local byPoint = {}
+    for _, e in ipairs(list) do byPoint[e.__points[1][1]] = e end
+    local l, r = byPoint.RIGHT, byPoint.LEFT   -- the left piece hangs off its RIGHT point
+    __check(l and r, endPiece .. ": anchored at each end")
+    if l and r then
+        __check(math.abs(l.__w - w) < 1e-6 and l.__h == 40, endPiece .. ": Width stretches, Size sets the height")
+        __check(math.abs(l.__points[1][4] - (2 + w * spec.inset)) < 1e-6, endPiece .. ": left overlaps the bar by its inset")
+        __check(math.abs(r.__points[1][4] + (2 + w * spec.inset)) < 1e-6, endPiece .. ": right mirrors the overlap")
+        local lc, rc = l.tex.__coords, r.tex.__coords
+        __check(lc[1] < lc[2] and rc[1] > rc[2], endPiece .. ": drawn as-is on the left, mirrored on the right")
+    end
+    p.badge.point, p.badge.pair = "RIGHT", false
+    ns.NotifySettingsChanged()
+    local _, one = __ShownElements(elite)
+    local c = one[1] and one[1].tex.__coords
+    __check(c and c[1] > c[2], endPiece .. ": a single piece on the right end faces outward")
+    p.badge.style, p.badge.point, p.badge.pair, p.badge.size, p.badge.width, p.badge.x = saved[1], saved[2], saved[3], saved[4], saved[5], saved[6]
+    ns.NotifySettingsChanged()
+end
+
 -- Every placement and animation.
 for _, point in ipairs(ns.PLACEMENT_ORDER) do
     p.badge.point = point

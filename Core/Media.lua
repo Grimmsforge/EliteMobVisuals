@@ -8,7 +8,7 @@
 --
 -- ns.Media.Resolve(styleKey, classification) returns a spec:
 --   { file, coords = { l, r, t, b }, aspect = width / height,
---     facing = "right" | nil, tintable = bool }
+--     facing = "right" | "left" | nil, inset = number | nil, tintable = bool }
 -- =============================================================================
 local _, ns = ...
 local L = ns.L
@@ -22,7 +22,11 @@ Media.GLOW = TEX .. "glow"
 local FALLBACK_STYLE = "crest"
 
 -- facing = "right": the art points right, so on the left of a plate it is
--- mirrored to point outward. Unset: symmetric art.
+-- mirrored to point outward. "left": the reverse. Unset: symmetric art.
+-- End pieces wrap the end of the bar: drawn for the bar's left end (facing
+-- "left"), and inset is the share of their width that overlaps the bar, so
+-- the clasp grips the bar's end at any size. coords crop the texture's empty
+-- right side (tools/art/build-art.py prints the art's width).
 local STYLES = {
     wing    = { name = L["Gilded Wing"],    file = TEX .. "badge-wing",    facing = "right" },
     crest   = { name = L["Heraldic Crest"], file = TEX .. "badge-crest" },
@@ -32,6 +36,10 @@ local STYLES = {
     crown   = { name = L["Crown"],          file = TEX .. "badge-crown" },
     chevron = { name = L["Chevron"],        file = TEX .. "badge-chevron" },
     arrow   = { name = L["Arrow"],          file = TEX .. "badge-arrow" },
+    clasp   = { name = L["Clawed Clasp (end piece)"], file = TEX .. "end-clasp", facing = "left",
+                coords = { 0, 203 / 256, 0, 1 }, aspect = 203 / 256, inset = 0.18 },
+    winged  = { name = L["Winged Gem (end piece)"], file = TEX .. "end-winged", facing = "left",
+                coords = { 0, 158 / 256, 0, 1 }, aspect = 158 / 256, inset = 0.30 },
 
     -- The nameplate classification icons (gold elite, silver rare elite, star).
     blizzIcon = {
@@ -91,7 +99,7 @@ local STYLES = {
 }
 
 Media.ORDER = {
-    "wing", "crest", "star", "skull", "diamond", "crown", "chevron", "arrow",
+    "wing", "crest", "star", "skull", "diamond", "crown", "chevron", "arrow", "clasp", "winged",
     "blizzIcon", "blizzDragon", "classicDragon", "vignette", "raidIcon",
 }
 
@@ -165,7 +173,8 @@ function Media.Resolve(key, class)
             spec = Media.Resolve(FALLBACK_STYLE, class)
         end
     else
-        spec = { file = style.file, coords = { 0, 1, 0, 1 }, aspect = 1, facing = style.facing, tintable = true }
+        spec = { file = style.file, coords = style.coords or { 0, 1, 0, 1 }, aspect = style.aspect or 1,
+                 facing = style.facing, inset = style.inset, tintable = true }
     end
     cache[cacheKey] = spec
     return spec
